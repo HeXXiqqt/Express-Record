@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>离线快递登记系统</title>
+  <!-- 使用本地缓存的ZXing库 -->
+  <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4a6fa5;
+      --secondary: #6b8cbc;
+      --accent: #ff6b6b;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --danger: #dc3545;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #f7c6e0);
+      padding: 15px;
+      min-height: 100vh;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.92);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      color: var(--primary);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .subtitle {
+      color: var(--dark);
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
+    
+    #video {
+      width: 100%;
+      height: 220px;
+      border-radius: 8px;
+      margin: 15px auto 25px;
+      display: block;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background: #000;
+    }
+    
+    .status-container {
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .status-card {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .online .status-dot {
+      background-color: var(--success);
+    }
+    
+    .offline .status-dot {
+      background-color: var(--danger);
+    }
+    
+    .cache-status {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background-color: rgba(74, 111, 165, 0.1);
+      display: inline-block;
+    }
+    
+    .storage-info {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed #ddd;
+    }
+    
+    .progress-container {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+    
+    .form-container {
+      background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      color: white;
+      margin-bottom: 30px;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    
+    input[type="text"], select {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+    }
+    
+    button {
+      padding: 12px 20px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background-color: #3a5a8a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button i {
+      margin-right: 8px;
+    }
+    
+    .scan-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .scan-buttons button {
+      background: var(--success);
+    }
+    
+    .scan-buttons button:hover {
+      background: #3d8b40;
+    }
+    
+    #manualCompanyInput {
+      display: none;
+      margin-top: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .table-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+    
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    th {
+      background: linear-gradient(to right, #4a6fa5, #6b8cbc);
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    tr:hover {
+      background-color: #e9f0f8;
+    }
+    
+    .delete-button {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 15px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .delete-button:hover {
+      background-color: #bd2130;
+    }
+    
+    .export-controls {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+    
+    .export-controls button {
+      flex: 1;
+      min-width: 150px;
+    }
+    
+    #exportDate {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      min-width: 200px;
+    }
+    
+    .offline-warning {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #ffc107;
+    }
+    
+    .offline-warning.show {
+      display: block;
+    }
+    
+    .instructions {
+      background-color: #e7f4ff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+    
+    .instructions h3 {
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+    
+    .instructions ol {
+      padding-left: 20px;
+    }
+    
+    .instructions li {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    
+    /* 确认框样式 */
+    #confirmationModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: modalAppear 0.3s ease-out;
+    }
+    
+    @keyframes modalAppear {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .modal-header h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #777;
+      transition: color 0.2s;
+    }
+    
+    .close-modal:hover {
+      color: var(--danger);
+    }
+    
+    .confirmation-details {
+      margin-bottom: 25px;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px dashed #eee;
+    }
+    
+    .detail-label {
+      font-weight: bold;
+      width: 100px;
+      color: #555;
+    }
+    
+    .detail-value {
+      flex: 1;
+      color: #333;
+    }
+    
+    .tracking-display {
+      font-family: monospace;
+      font-size: 1.1rem;
+      letter-spacing: 1.5px;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+    
+    .modal-btn {
+      padding: 10px 25px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .confirm-btn {
+      background: var(--success);
+      color: white;
+    }
+    
+    .confirm-btn:hover {
+      background: #3d8b40;
+    }
+    
+    .cancel-btn {
+      background: #f1f1f1;
+      color: #555;
+    }
+    
+    .cancel-btn:hover {
+      background: #e0e0e0;
+    }
+    
+    /* 备份管理面板 */
+    .backup-container {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .backup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .backup-controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .backup-controls button {
+      min-width: 180px;
+    }
+    
+    .backup-info {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed #ddd;
+    }
+    
+    .backup-info p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    
+    .backup-info ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+    
+    .backup-info li {
+      margin-bottom: 8px;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .form-container {
+        padding: 20px;
+      }
+      
+      .scan-buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      .export-controls {
+        flex-direction: column;
+      }
+      
+      #exportDate {
+        width: 100%;
+      }
+      
+      .modal-content {
+        width: 95%;
+        padding: 20px;
+      }
+      
+      .modal-actions {
+        flex-direction: column;
+      }
+      
+      .modal-btn {
+        width: 100%;
+      }
+      
+      .backup-controls {
+        flex-direction: column;
+      }
+      
+      .backup-controls button {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .form-grid {
+        gap: 15px;
+      }
+      
+      input[type="text"], select, button {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+      
+      .table-container {
+        padding: 15px;
+      }
+      
+      .status-card {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 确认弹窗 -->
+  <div id="confirmationModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>确认快递信息</h2>
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="confirmation-details">
+        <div class="detail-row">
+          <div class="detail-label">区域:</div>
+          <div class="detail-value" id="confirmArea"></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">快递单号:</div>
+          <div class="detail-value">
+            <div class="tracking-display" id="confirmTracking"></div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">快递公司:</div>
+          <div class="detail-value" id="confirmCompany"></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">寄件人:</div>
+          <div class="detail-value" id="confirmSender"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel-btn" onclick="closeModal()">取消</button>
+        <button class="modal-btn confirm-btn" onclick="saveData()">确认提交</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <header>
+      <h1>离线快递登记系统</h1>
+      <p class="subtitle">支持完全离线使用 - ZXing识别库已本地缓存</p>
+    </header>
+    
+    <div class="offline-warning" id="offlineWarning">
+      <strong>离线模式：</strong> 您当前处于离线状态。所有功能仍可正常使用，ZXing扫描库已从本地缓存加载。
+    </div>
+    
+    <div class="status-container">
+      <div class="status-card">
+        <div class="status-indicator online" id="onlineStatus">
+          <div class="status-dot"></div>
+          <span>在线状态</span>
+        </div>
+        <p>ZXing扫描库状态: <span class="cache-status" id="cacheStatus">已缓存，可离线使用</span></p>
+      </div>
+      
+      <div class="status-card">
+        <div class="status-indicator">
+          <div class="status-dot" style="background-color: var(--primary);"></div>
+          <span>本地存储状态</span>
+        </div>
+        <div class="storage-info">
+          <div>当前记录数: <strong id="recordCount">0</strong> 条</div>
+          <div>存储空间: <strong id="storageUsage">0KB</strong> / 5MB</div>
+          <div class="progress-container">
+            <div class="progress-bar" id="storageProgress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <video id="video"></video>
+
+    <div class="form-container">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="area"><i class="fas fa-map-marker-alt"></i> 区域:</label>
+          <input type="text" id="area" placeholder="请输入省份" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="trackingNumber"><i class="fas fa-barcode"></i> 快递单号:</label>
+          <input type="text" id="trackingNumber" required>
+          <div class="scan-buttons">
+            <button type="button" onclick="startScan()">
+              <i class="fas fa-camera"></i> 网页扫码
+            </button>
+            <button type="button" onclick="launchNativeScanner()">
+              <i class="fas fa-mobile-alt"></i> 本地扫码
+            </button>
+            <button type="button" onclick="pasteFromClipboard()">
+              <i class="fas fa-paste"></i> 粘贴单号
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="companySelect"><i class="fas fa-truck"></i> 快递公司:</label>
+          <select id="companySelect">
+            <option value="">请选择快递公司</option>
+            <option value="顺丰">顺丰</option>
+            <option value="京东">京东</option>
+            <option value="圆通">圆通</option>
+            <option value="中通">中通</option>
+            <option value="申通">申通</option>
+            <option value="德邦">德邦</option>
+            <option value="EMS">EMS</option>
+            <option value="韵达">韵达</option>
+            <option value="百世快递">百世快递</option>
+            <option value="国通快递">国通快递</option>
+          </select>
+          <button type="button" onclick="toggleManualCompany()" style="margin-top: 10px;">
+            <i class="fas fa-edit"></i> 手动输入快递公司
+          </button>
+        </div>
+
+        <div id="manualCompanyInput" class="form-group">
+          <label for="manualCompany"><i class="fas fa-keyboard"></i> 手动输入快递公司:</label>
+          <input type="text" id="manualCompany" placeholder="请输入快递公司">
+          <button type="button" onclick="confirmManualCompany()" style="margin-top: 10px;">
+            <i class="fas fa-check"></i> 确认输入
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="sender"><i class="fas fa-user"></i> 寄件人:</label>
+          <input type="text" id="sender" placeholder="请输入寄件人" required>
+        </div>
+
+        <div class="form-group">
+          <button type="button" onclick="submitForm()" style="margin-top: 15px;">
+            <i class="fas fa-paper-plane"></i> 提交登记
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div id="table">
+        <table>
+          <thead>
+            <tr>
+              <th>区域</th>
+              <th>快递单号</th>
+              <th>寄件人</th>
+              <th>快递公司</th>
+              <th>日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 数据将通过JS动态填充 -->
+          </tbody>
+        </table>
+      </div>
+      <div class="export-controls">
+        <button onclick="exportToCSV('all')">
+          <i class="fas fa-download"></i> 导出所有记录
+        </button>
+        <select id="exportDate">
+          <option value="all">所有日期</option>
+          <!-- 日期选项将通过JS动态填充 -->
+        </select>
+        <button onclick="exportToCSV('selected')">
+          <i class="fas fa-calendar-download"></i> 导出选择日期
+        </button>
+      </div>
+    </div>
+    
+    <div class="backup-container">
+      <div class="backup-header">
+        <h2><i class="fas fa-database"></i> 数据备份管理</h2>
+      </div>
+      
+      <div class="backup-controls">
+        <button onclick="exportBackup()" style="background: var(--success);">
+          <i class="fas fa-file-export"></i> 导出完整备份
+        </button>
+        <button onclick="importBackup()" style="background: var(--warning);">
+          <i class="fas fa-file-import"></i> 导入备份数据
+        </button>
+        <button onclick="clearAllData()" style="background: var(--danger);">
+          <i class="fas fa-trash-alt"></i> 清空所有数据
+        </button>
+      </div>
+      
+      <div class="backup-info">
+        <p><strong>本地存储说明：</strong></p>
+        <ul>
+          <li>浏览器为每个网站提供约 <strong>5MB</strong> 的存储空间</li>
+          <li>当前系统最多可存储 <strong>10,000+</strong> 条快递记录</li>
+          <li>数据存储在浏览器本地，不会上传到任何服务器</li>
+          <li>定期使用<b>导出完整备份</b>功能备份数据，防止意外丢失</li>
+        </ul>
+        
+        <p style="margin-top: 15px;"><strong>手动备份位置（Android）：</strong></p>
+        <p>在小米浏览器中，数据存储在：<br>
+        <code>/data/data/com.mi.globalbrowser/app_webview/Local Storage/leveldb/</code></p>
+        <p class="cache-status" style="margin-top: 10px; display: inline-block;">
+          <i class="fas fa-exclamation-triangle"></i> 需要root权限才能访问
+        </p>
+      </div>
+    </div>
+    
+    <div class="instructions">
+      <h3>离线使用指南</h3>
+      <ol>
+        <li>首次使用时，请确保在有网络的环境下访问此页面</li>
+        <li>系统会自动缓存ZXing扫描库到您的设备</li>
+        <li>之后即使完全离线，所有功能也可正常使用</li>
+        <li>您的数据存储在浏览器本地，不会丢失，请不要清除浏览器记录</li>
+        <li>定期使用"导出完整备份"功能备份数据</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 隐藏的文件输入元素用于导入备份 -->
+  <input type="file" id="backupFile" accept=".json" style="display: none;">
+  
+  <script>
+    // 检测离线状态
+    function updateOnlineStatus() {
+      const onlineStatus = document.getElementById('onlineStatus');
+      const offlineWarning = document.getElementById('offlineWarning');
+      
+      if (navigator.onLine) {
+        onlineStatus.className = 'status-indicator online';
+        offlineWarning.classList.remove('show');
+      } else {
+        onlineStatus.className = 'status-indicator offline';
+        offlineWarning.classList.add('show');
+      }
+    }
+    
+    // 初始化应用
+    let trackingData = JSON.parse(localStorage.getItem("trackingData")) || [];
+    let uniqueDates = [...new Set(trackingData.map(item => item.date))];
+    const CodeReader = window.ZXing?.BrowserMultiFormatReader;
+    
+    // 存储当前表单数据用于确认
+    let currentFormData = {
+      area: '',
+      trackingNumber: '',
+      company: '',
+      sender: ''
+    };
+
+    // 注册Service Worker缓存资源
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('Service Worker 注册成功:', registration);
+          document.getElementById('cacheStatus').textContent = '已缓存，可离线使用';
+        })
+        .catch(error => {
+          console.log('Service Worker 注册失败:', error);
+          document.getElementById('cacheStatus').textContent = '已缓存条形码识别率';
+        });
+    } else {
+      console.log('当前浏览器不支持 Service Worker');
+    }
+    
+    // 页面功能函数
+    function populateExportDates() {
+      const exportDateSelect = document.getElementById("exportDate");
+      exportDateSelect.innerHTML = '<option value="all">所有日期</option>';
+      
+      uniqueDates.forEach(date => {
+        const option = document.createElement("option");
+        option.value = date;
+        option.textContent = date;
+        exportDateSelect.appendChild(option);
+      });
+    }
+
+    function toggleManualCompany() {
+      const manualInput = document.getElementById("manualCompanyInput");
+      manualInput.style.display = manualInput.style.display === "none" ? "block" : "none";
+    }
+
+    function confirmManualCompany() {
+      const manualInput = document.getElementById("manualCompany").value.trim();
+      if (manualInput) {
+        document.getElementById("companySelect").value = manualInput;
+      }
+      document.getElementById("manualCompanyInput").style.display = "none";
+    }
+
+    function formatTrackingNumber(number) {
+      if (!number) return '';
+      
+      // 移除特定后缀
+      number = number.replace(/-1-1-$/, '');
+      
+      // 移除所有空格
+      const cleaned = number.replace(/\s+/g, '');
+      
+      if (cleaned.length <= 2) return cleaned;
+      
+      // 每3个字符一组分割
+      const firstPart = cleaned.slice(0, 2);
+      const rest = cleaned.slice(2);
+      const restParts = rest.match(/.{1,3}/g) || [];
+      
+      return [firstPart, ...restParts].join(' ');
+    }
+    
+    // 打开确认弹窗
+    function openModal() {
+      document.getElementById('confirmationModal').style.display = 'flex';
+    }
+    
+    // 关闭确认弹窗
+    function closeModal() {
+      document.getElementById('confirmationModal').style.display = 'none';
+    }
+    
+    // 保存数据到本地存储
+    function saveData() {
+      const formattedNumber = formatTrackingNumber(currentFormData.trackingNumber);
+
+      const now = new Date();
+      const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      trackingData.push({ 
+        area: currentFormData.area, 
+        trackingNumber: formattedNumber, 
+        sender: currentFormData.sender, 
+        company: currentFormData.company, 
+        date 
+      });
+      
+      localStorage.setItem("trackingData", JSON.stringify(trackingData));
+      renderTable();
+      populateExportDates();
+      updateStorageInfo();
+      
+      // 重置表单
+      document.getElementById("area").value = '';
+      document.getElementById("trackingNumber").value = '';
+      document.getElementById("sender").value = '';
+      document.getElementById("companySelect").value = '';
+      document.getElementById("manualCompany").value = '';
+      document.getElementById("manualCompanyInput").style.display = "none";
+      
+      closeModal();
+      alert("登记成功！");
+    }
+    
+    // 清除表单输入
+    function clearForm() {
+      document.getElementById("area").value = '';
+      document.getElementById("trackingNumber").value = '';
+      document.getElementById("sender").value = '';
+      document.getElementById("companySelect").value = '';
+      document.getElementById("manualCompany").value = '';
+      document.getElementById("manualCompanyInput").style.display = "none";
+      
+      closeModal();
+    }
+
+    function submitForm() {
+      currentFormData.area = document.getElementById("area").value.trim();
+      currentFormData.trackingNumber = document.getElementById("trackingNumber").value.trim();
+      currentFormData.sender = document.getElementById("sender").value.trim();
+      const companySelect = document.getElementById("companySelect").value.trim();
+      const manualCompany = document.getElementById("manualCompany").value.trim();
+      currentFormData.company = companySelect || manualCompany;
+
+      // 检查必填字段
+      if (!currentFormData.area) {
+        document.getElementById("area").focus();
+        alert("区域不能为空");
+        return;
+      }
+      if (!currentFormData.trackingNumber) {
+        document.getElementById("trackingNumber").focus();
+        alert("快递单号不能为空");
+        return;
+      }
+      if (!currentFormData.sender) {
+        document.getElementById("sender").focus();
+        alert("寄件人不能为空");
+        return;
+      }
+      if (!currentFormData.company) {
+        document.getElementById("companySelect").focus();
+        alert("快递公司不能为空");
+        return;
+      }
+
+      const cleanedNumber = currentFormData.trackingNumber.replace(/\s+/g, '');
+      const isDuplicate = trackingData.some(item => 
+        item.trackingNumber.replace(/\s+/g, '') === cleanedNumber
+      );
+
+      if (isDuplicate) {
+        alert("快递单号已存在，无法重复提交！");
+        return;
+      }
+
+      // 显示确认弹窗，并格式化快递单号显示
+      document.getElementById('confirmArea').textContent = currentFormData.area;
+      document.getElementById('confirmTracking').textContent = formatTrackingNumber(currentFormData.trackingNumber);
+      document.getElementById('confirmCompany').textContent = currentFormData.company;
+      document.getElementById('confirmSender').textContent = currentFormData.sender;
+      
+      openModal();
+    }
+
+    function exportToCSV(type = 'all') {
+      let csvContent = "区域,快递单号,寄件人,快递公司,日期\n";
+      let filteredData = [];
+
+      if (type === 'all') {
+        filteredData = trackingData;
+      } else {
+        const selectedDate = document.getElementById("exportDate").value;
+        filteredData = trackingData.filter(item => item.date === selectedDate);
+      }
+
+      if (filteredData.length === 0) {
+        alert("没有可导出的记录");
+        return;
+      }
+
+      csvContent += filteredData.map(item => 
+        `${item.area},${item.trackingNumber},${item.sender},${item.company},${item.date}`
+      ).join("\n");
+      
+      // 添加BOM头解决Excel中文乱码问题
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { 
+        type: "text/csv;charset=utf-8;"
+      });
+      
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `快递登记_${new Date().toISOString().split("T")[0]}.csv`);
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function deleteRecord(index) {
+      if (confirm("确定要删除这条记录吗？")) {
+        trackingData.splice(index, 1);
+        localStorage.setItem("trackingData", JSON.stringify(trackingData));
+        renderTable();
+        populateExportDates();
+        updateStorageInfo();
+      }
+    }
+
+    // 导出完整备份
+    function exportBackup() {
+      const backupData = {
+        trackingData: trackingData,
+        timestamp: new Date().toISOString(),
+        system: "离线快递登记系统"
+      };
+      
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `快递系统备份_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    // 导入备份
+    function importBackup() {
+      document.getElementById('backupFile').click();
+    }
+    
+    // 清空所有数据
+    function clearAllData() {
+      if (confirm("确定要清空所有数据吗？此操作不可撤销！")) {
+        trackingData = [];
+        localStorage.setItem("trackingData", JSON.stringify(trackingData));
+        renderTable();
+        populateExportDates();
+        updateStorageInfo();
+        alert("所有数据已清空！");
+      }
+    }
+    
+    // 更新存储信息
+    function updateStorageInfo() {
+      const dataSize = JSON.stringify(trackingData).length;
+      const kbSize = (dataSize / 1024).toFixed(2);
+      const maxSize = 5 * 1024; // 5MB in KB
+      const percentage = Math.min(100, (dataSize / (maxSize * 1024)) * 100);
+      
+      document.getElementById('recordCount').textContent = trackingData.length;
+      document.getElementById('storageUsage').textContent = `${kbSize}KB`;
+      document.getElementById('storageProgress').style.width = `${percentage}%`;
+    }
+
+    async function startScan() {
+      if (!CodeReader) {
+        alert("ZXing库加载失败，请检查网络连接或刷新页面");
+        return;
+      }
+      
+      const videoElement = document.getElementById("video");
+      videoElement.style.display = "block";
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        videoElement.srcObject = stream;
+        await new Promise(resolve => videoElement.onloadedmetadata = resolve);
+        videoElement.play();
+
+        const codeReader = new CodeReader();
+        const result = await codeReader.decodeOnceFromVideoDevice(undefined, "video");
+        
+        // 获取快递单号后停止摄像头
+        document.getElementById("trackingNumber").value = result.text;
+        videoElement.style.display = "none";
+        codeReader.reset();
+        
+        // 停止摄像头流
+        if (stream.getTracks) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      } catch (err) {
+        alert("摄像头权限被拒绝或不可用。请检查浏览器设置并重试。");
+        console.error(err);
+        videoElement.style.display = "none";
+      }
+    }
+
+    function launchNativeScanner() {
+      const url = "zxing://scan/";
+
+      try {
+        window.location.href = url;
+
+        setTimeout(() => {
+          alert("未检测到本地扫码应用，请安装 ZXing 扫码应用。");
+        }, 2000);
+      } catch (e) {
+        alert("调用本地扫码失败，请确保已安装 ZXing 扫码应用。");
+      }
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("trackingNumber").value = text.trim();
+      } catch (err) {
+        console.error('无法读取剪贴板:', err);
+        // 降级方案
+        document.getElementById("trackingNumber").focus();
+        document.execCommand('paste');
+      }
+    }
+
+    function renderTable() {
+      const tableBody = document.querySelector('#table table tbody');
+      tableBody.innerHTML = trackingData.map((item, index) => `
+        <tr>
+          <td>${item.area}</td>
+          <td>${item.trackingNumber}</td>
+          <td>${item.sender}</td>
+          <td>${item.company}</td>
+          <td>${item.date}</td>
+          <td>
+            <button class="delete-button" onclick="deleteRecord(${index})">
+              <i class="fas fa-trash-alt"></i> 删除
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', function () {
+      // 检查URL中是否有扫码结果
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        document.getElementById('trackingNumber').value = code;
+        setTimeout(() => document.getElementById('trackingNumber').focus(), 100);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // 渲染表格和日期选择器
+      renderTable();
+      populateExportDates();
+      updateStorageInfo();
+      
+      // 设置离线状态检测
+      updateOnlineStatus();
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      
+      // 显示缓存状态
+      if (!window.ZXing) {
+        document.getElementById('cacheStatus').textContent = 'ZXing库未加载，需要网络连接';
+      }
+      
+      // 点击模态框外部关闭
+      document.getElementById('confirmationModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeModal();
+        }
+      });
+      
+      // 监听备份文件选择
+      document.getElementById('backupFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const backupData = JSON.parse(event.target.result);
+            
+            if (!backupData.trackingData || !Array.isArray(backupData.trackingData)) {
+              throw new Error('无效的备份文件格式');
+            }
+            
+            if (confirm(`确定要导入备份吗？这将覆盖现有的 ${trackingData.length} 条记录。`)) {
+              trackingData = backupData.trackingData;
+              localStorage.setItem("trackingData", JSON.stringify(trackingData));
+              renderTable();
+              populateExportDates();
+              updateStorageInfo();
+              alert(`成功导入 ${trackingData.length} 条记录！`);
+            }
+          } catch (error) {
+            alert(`导入失败: ${error.message}`);
+          }
+        };
+        reader.readAsText(file);
+      });
+    });
+  </script>
+</body>
+</html>
