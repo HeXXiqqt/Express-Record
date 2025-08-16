@@ -2,65 +2,75 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>产品图库系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
-        body{background:linear-gradient(135deg,#1a2a6c,#2c3e50);color:#fff;min-height:100vh;padding:20px}
-        .container{max-width:1400px;margin:0 auto}
-        header{text-align:center;padding:20px 0;margin-bottom:30px;border-bottom:2px solid rgba(255,255,255,.1)}
-        h1{font-size:2.8rem;margin-bottom:10px;background:linear-gradient(to right,#ffd700,#ff8c00);-webkit-background-clip:text;color:transparent;text-shadow:0 2px 4px rgba(0,0,0,.3)}
-        .subtitle{font-size:1.2rem;opacity:.8;margin-bottom:20px}
-        .upload-section{background:rgba(255,255,255,.1);border-radius:15px;padding:20px;margin-bottom:25px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 5px 15px rgba(0,0,0,.2)}
-        .upload-btn{position:relative;overflow:hidden;display:inline-block;cursor:pointer;padding:12px 30px;border-radius:50px;background:linear-gradient(45deg,#2193b0,#6dd5ed);color:#fff;font-weight:bold;transition:all .3s;box-shadow:0 4px 15px rgba(33,147,176,.4)}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+        body{background:linear-gradient(135deg,#1a2a6c,#2c3e50);color:#fff;min-height:100vh;padding:10px;display:flex;flex-direction:column}
+        .container{max-width:1400px;margin:0 auto;width:100%}
+        header{text-align:center;padding:15px 0;margin-bottom:20px;border-bottom:2px solid rgba(255,255,255,.1)}
+        h1{font-size:2rem;margin-bottom:5px;background:linear-gradient(to right,#ffd700,#ff8c00);-webkit-background-clip:text;color:transparent;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .subtitle{font-size:1rem;opacity:.8;margin-bottom:15px}
+        .upload-section{background:rgba(255,255,255,.1);border-radius:15px;padding:15px;margin-bottom:20px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 5px 15px rgba(0,0,0,.2)}
+        .upload-btn{position:relative;overflow:hidden;display:inline-block;cursor:pointer;padding:10px 25px;border-radius:50px;background:linear-gradient(45deg,#2193b0,#6dd5ed);color:#fff;font-weight:bold;transition:all .3s;box-shadow:0 4px 15px rgba(33,147,176,.4)}
         .upload-btn:hover{transform:translateY(-3px);box-shadow:0 7px 20px rgba(33,147,176,.6)}
         .upload-btn input{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
         .file-name{font-size:.9rem;opacity:.8;margin-top:10px}
-        .search-container{max-width:600px;margin:0 auto 30px;position:relative}
-        .search-container input{width:100%;padding:14px 20px;border:none;border-radius:50px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);color:#fff;font-size:1.1rem;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+        .search-container{max-width:600px;margin:0 auto 20px;position:relative}
+        .search-container input{width:100%;padding:12px 20px;border:none;border-radius:50px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);color:#fff;font-size:1rem;box-shadow:0 4px 15px rgba(0,0,0,.2)}
         .search-container input::placeholder{color:rgba(255,255,255,.7)}
         .search-container i{position:absolute;right:20px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.7)}
-        .breadcrumb{display:flex;align-items:center;padding:15px 0;margin-bottom:20px;flex-wrap:wrap}
-        .breadcrumb-item{display:flex;align-items:center;font-size:1rem;cursor:pointer;transition:all .3s;padding:8px 15px;border-radius:30px;margin:5px;background:rgba(255,255,255,.08)}
+        .breadcrumb{display:flex;align-items:center;padding:10px 0;margin-bottom:15px;flex-wrap:wrap}
+        .breadcrumb-item{display:flex;align-items:center;font-size:.9rem;cursor:pointer;transition:all .3s;padding:6px 12px;border-radius:30px;margin:3px;background:rgba(255,255,255,.08)}
         .breadcrumb-item:hover{background:rgba(255,255,255,.15);transform:translateY(-2px)}
         .breadcrumb-item.active{background:linear-gradient(45deg,#ff8a00,#ff0080)}
-        .breadcrumb i{margin:0 10px;opacity:.6}
-        .content{display:grid;grid-template-columns:300px 1fr;gap:25px}
-        .sidebar{background:rgba(30,30,46,.7);border-radius:20px;padding:25px;backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.3);max-height:80vh;overflow-y:auto}
-        .sidebar-title{font-size:1.4rem;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center}
-        .sidebar-title i{margin-right:10px;color:#ffd700}
+        .breadcrumb i{margin:0 8px;opacity:.6;font-size:.7rem}
+        .content{display:grid;grid-template-columns:1fr;gap:20px}
+        @media(min-width:768px){.content{grid-template-columns:250px 1fr}}
+        .sidebar{background:rgba(30,30,46,.7);border-radius:15px;padding:15px;backdrop-filter:blur(10px);box-shadow:0 5px 20px rgba(0,0,0,.3);max-height:60vh;overflow-y:auto}
+        .sidebar-title{font-size:1.2rem;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center}
+        .sidebar-title i{margin-right:8px;color:#ffd700}
         .category-list{list-style:none}
-        .category-item{padding:14px 20px;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all .3s;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05)}
-        .category-item:hover{background:rgba(255,255,255,.1);transform:translateX(5px)}
-        .category-item.active{background:linear-gradient(45deg,#2193b0,#6dd5ed);box-shadow:0 5px 15px rgba(33,147,176,.4)}
-        .count{background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;font-size:.9rem}
-        .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:25px}
-        .card{background:rgba(30,30,46,.7);border-radius:18px;overflow:hidden;transition:all .4s;box-shadow:0 10px 20px rgba(0,0,0,.2);backdrop-filter:blur(10px);height:100%;display:flex;flex-direction:column}
-        .card:hover{transform:translateY(-10px);box-shadow:0 15px 30px rgba(0,0,0,.4)}
-        .card-img{height:240px;overflow:hidden;position:relative}
+        .category-item{padding:10px 15px;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .3s;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05);font-size:.9rem}
+        .category-item:hover{background:rgba(255,255,255,.1);transform:translateX(3px)}
+        .category-item.active{background:linear-gradient(45deg,#2193b0,#6dd5ed);box-shadow:0 3px 10px rgba(33,147,176,.4)}
+        .count{background:rgba(0,0,0,.3);padding:2px 8px;border-radius:15px;font-size:.8rem}
+        .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px}
+        @media(min-width:600px){.gallery{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
+        @media(min-width:992px){.gallery{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}}
+        .card{background:rgba(30,30,46,.7);border-radius:12px;overflow:hidden;transition:all .4s;box-shadow:0 5px 15px rgba(0,0,0,.2);backdrop-filter:blur(10px);height:100%;display:flex;flex-direction:column}
+        .card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+        .card-img{height:150px;overflow:hidden;position:relative}
+        @media(min-width:600px){.card-img{height:180px}}
+        @media(min-width:992px){.card-img{height:200px}}
         .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
         .card:hover .card-img img{transform:scale(1.05)}
-        .card-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);padding:20px}
-        .card-title{font-size:1.3rem;margin-bottom:5px}
-        .card-subtitle{font-size:.95rem;opacity:.8}
-        .card-content{padding:20px;flex-grow:1;display:flex;flex-direction:column}
-        .card-details{display:flex;justify-content:space-between;margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1)}
+        .card-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);padding:10px}
+        .card-title{font-size:1rem;margin-bottom:3px}
+        .card-subtitle{font-size:.8rem;opacity:.8}
+        .card-content{padding:10px;flex-grow:1;display:flex;flex-direction:column}
+        .card-details{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
         .detail-item{text-align:center}
-        .detail-value{font-size:1.1rem;font-weight:bold;color:#ffd700}
-        .detail-label{font-size:.85rem;opacity:.7;margin-top:5px}
-        .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:15px}
-        .btn{padding:10px 20px;border-radius:30px;background:linear-gradient(45deg,#ff8a00,#e52e71);color:#fff;border:none;cursor:pointer;font-weight:bold;transition:all .3s;display:inline-flex;align-items:center}
-        .btn i{margin-right:8px}
-        .btn:hover{transform:translateY(-3px);box-shadow:0 7px 15px rgba(229,46,113,.4)}
-        .no-results{grid-column:1/-1;text-align:center;padding:50px;font-size:1.2rem;opacity:.7}
-        .pagination{display:flex;justify-content:center;margin-top:30px;grid-column:1/-1}
-        .page-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 5px;background:rgba(255,255,255,.1);cursor:pointer;transition:all .3s}
+        .detail-value{font-size:.9rem;font-weight:bold;color:#ffd700}
+        .detail-label{font-size:.7rem;opacity:.7;margin-top:2px}
+        .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
+        .btn{padding:6px 12px;border-radius:20px;background:linear-gradient(45deg,#ff8a00,#e52e71);color:#fff;border:none;cursor:pointer;font-weight:bold;font-size:.75rem;transition:all .3s;display:inline-flex;align-items:center}
+        .btn i{margin-right:5px;font-size:.7rem}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(229,46,113,.4)}
+        .no-results{grid-column:1/-1;text-align:center;padding:30px;font-size:1rem;opacity:.7}
+        .pagination{display:flex;justify-content:center;margin-top:20px;grid-column:1/-1;flex-wrap:wrap}
+        .page-btn{width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:3px;background:rgba(255,255,255,.1);cursor:pointer;font-size:.8rem;transition:all .3s}
         .page-btn:hover,.page-btn.active{background:linear-gradient(45deg,#ff8a00,#e52e71)}
-        #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000}
-        #lightbox img{max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 40px rgba(255,255,255,.1)}
-        #closeBox{position:absolute;top:30px;right:30px;color:#fff;font-size:3rem;cursor:pointer;transition:all .3s}
+        /* lightbox放大缩小 */
+        #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
+        #lightbox img{max-width:95%;max-height:70%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,.1);transition:transform .3s}
+        #lightbox-controls{position:absolute;bottom:20px;display:flex;gap:15px}
+        #lightbox-controls button{padding:10px 15px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:1.2rem;cursor:pointer;transition:background .3s}
+        #lightbox-controls button:hover{background:rgba(255,255,255,.4)}
+        #closeBox{position:absolute;top:15px;right:20px;color:#fff;font-size:2.5rem;cursor:pointer;transition:all .3s}
         #closeBox:hover{transform:scale(1.2)}
-        .notification{position:fixed;top:20px;right:20px;padding:15px 25px;border-radius:10px;background:linear-gradient(45deg,#00c853,#64dd17);color:#fff;font-weight:bold;box-shadow:0 5px 15px rgba(0,0,0,.3);transform:translateX(200%);transition:transform .4s;z-index:2000}
+        .notification{position:fixed;top:15px;right:15px;padding:12px 20px;border-radius:8px;background:linear-gradient(45deg,#00c853,#64dd17);color:#fff;font-weight:bold;font-size:.9rem;box-shadow:0 3px 10px rgba(0,0,0,.3);transform:translateX(200%);transition:transform .4s;z-index:2000}
         .notification.show{transform:translateX(0)}
         .notification.error{background:linear-gradient(45deg,#ff5252,#ff1744)}
     </style>
@@ -104,23 +114,27 @@
         <div class="pagination" id="pagination"></div>
     </div>
 
+    <!-- 图片预览放大缩小 -->
     <div id="lightbox">
         <span id="closeBox">×</span>
         <img id="lightImg" alt="">
+        <div id="lightbox-controls">
+            <button id="zoomIn" title="放大"><i class="fas fa-search-plus"></i></button>
+            <button id="zoomOut" title="缩小"><i class="fas fa-search-minus"></i></button>
+        </div>
     </div>
 
     <div class="notification" id="notification">操作成功</div>
 
     <script>
         let productIndex = {};
+        let scale = 1;
         const state = {
             currentLevel: 0,
             currentBrand: null,
             currentCategory: null,
             currentPage: 1,
-            itemsPerPage: 8,
-            totalItems: 0,
-            totalPages: 1,
+            itemsPerPage: 12,
             searchTerm: '',
             dataLoaded: false
         };
@@ -133,6 +147,8 @@
         const lightbox = document.getElementById('lightbox');
         const lightImg = document.getElementById('lightImg');
         const closeBox = document.getElementById('closeBox');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
         const fileInput = document.getElementById('file-input');
         const fileName = document.getElementById('file-name');
         const notification = document.getElementById('notification');
@@ -317,6 +333,8 @@
                     } else {
                         card.onclick = () => {
                             lightImg.src = item.url;
+                            scale = 1;
+                            applyScale();
                             lightbox.style.display = 'flex';
                         };
                     }
@@ -371,6 +389,20 @@
             renderGallery();
         }
 
+        function applyScale() {
+            lightImg.style.transform = `scale(${scale})`;
+        }
+
+        zoomInBtn.addEventListener('click', () => {
+            scale += 0.4;
+            applyScale();
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            scale = Math.max(0.4, scale - 0.3);
+            applyScale();
+        });
+
         fileInput.addEventListener('change', e => {
             const file = e.target.files[0];
             if (!file) return;
@@ -400,7 +432,7 @@
             renderGallery();
         });
 
-        closeBox.onclick = () => lightbox.style.display = 'none';
+        closeBox.addEventListener('click', () => lightbox.style.display = 'none');
 
         breadcrumb.addEventListener('click', e => {
             const item = e.target.closest('.breadcrumb-item');
