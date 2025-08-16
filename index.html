@@ -2,590 +2,129 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>柏琪产品画册</title>
+    <title>产品图库系统</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #ffd700, #ff8c00);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-        
-        .upload-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .upload-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .upload-btn {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            cursor: pointer;
-            padding: 12px 30px;
-            border-radius: 50px;
-            background: linear-gradient(45deg, #2193b0, #6dd5ed);
-            color: white;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(33, 147, 176, 0.4);
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(33, 147, 176, 0.6);
-        }
-        
-        .upload-btn input {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .file-name {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 10px;
-        }
-        
-        .search-container {
-            max-width: 600px;
-            margin: 0 auto 30px;
-            position: relative;
-        }
-        
-        .search-container input {
-            width: 100%;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .search-container input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .search-container i {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 15px;
-            border-radius: 30px;
-            margin: 5px;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        .breadcrumb-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .breadcrumb-item.active {
-            background: linear-gradient(45deg, #ff8a00, #ff0080);
-        }
-        
-        .breadcrumb i {
-            margin: 0 10px;
-            opacity: 0.6;
-        }
-        
-        .content {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 25px;
-        }
-        
-        .sidebar {
-            background: rgba(30, 30, 46, 0.7);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .sidebar-title {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .sidebar-title i {
-            margin-right: 10px;
-            color: #ffd700;
-        }
-        
-        .category-list {
-            list-style: none;
-        }
-        
-        .category-item {
-            padding: 14px 20px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .category-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .category-item.active {
-            background: linear-gradient(45deg, #2193b0, #6dd5ed);
-            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
-        }
-        
-        .count {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-        
-        .card {
-            background: rgba(30, 30, 46, 0.7);
-            border-radius: 18px;
-            overflow: hidden;
-            transition: all 0.4s ease;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .card-img {
-            height: 240px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .card-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .card:hover .card-img img {
-            transform: scale(1.05);
-        }
-        
-        .card-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-            padding: 20px;
-        }
-        
-        .card-title {
-            font-size: 1.3rem;
-            margin-bottom: 5px;
-        }
-        
-        .card-subtitle {
-            font-size: 0.95rem;
-            opacity: 0.8;
-        }
-        
-        .card-content {
-            padding: 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .card-details {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .detail-item {
-            text-align: center;
-        }
-        
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #ffd700;
-        }
-        
-        .detail-label {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-            padding-top: 15px;
-        }
-        
-        .color-badge {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 5px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border-radius: 30px;
-            background: linear-gradient(45deg, #ff8a00, #e52e71);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .btn i {
-            margin-right: 8px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 15px rgba(229, 46, 113, 0.4);
-        }
-        
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            opacity: 0.7;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-            grid-column: 1 / -1;
-        }
-        
-        .page-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 5px;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .page-btn:hover, .page-btn.active {
-            background: linear-gradient(45deg, #ff8a00, #e52e71);
-        }
-        
-        /* 加载指示器 */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2rem;
-            grid-column: 1 / -1;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #ffd700;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* 灯箱样式 */
-        #lightbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        #lightbox img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 8px;
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-        }
-        
-        #closeBox {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            color: #fff;
-            font-size: 3rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        #closeBox:hover {
-            transform: scale(1.2);
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            background: linear-gradient(45deg, #00c853, #64dd17);
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transform: translateX(200%);
-            transition: transform 0.4s ease;
-            z-index: 2000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.error {
-            background: linear-gradient(45deg, #ff5252, #ff1744);
-        }
-        
-        @media (max-width: 1024px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                max-height: 300px;
-            }
-            
-            .gallery {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
-        }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .gallery {
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .gallery {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-img {
-                height: 200px;
-            }
-            
-            .card-content {
-                padding: 15px;
-            }
-            
-            .detail-item {
-                margin: 0 5px;
-            }
-            
-            .detail-value {
-                font-size: 1rem;
-            }
-            
-            .upload-container {
-                flex-direction: column;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+        body{background:linear-gradient(135deg,#1a2a6c,#2c3e50);color:#fff;min-height:100vh;padding:20px}
+        .container{max-width:1400px;margin:0 auto}
+        header{text-align:center;padding:20px 0;margin-bottom:30px;border-bottom:2px solid rgba(255,255,255,.1)}
+        h1{font-size:2.8rem;margin-bottom:10px;background:linear-gradient(to right,#ffd700,#ff8c00);-webkit-background-clip:text;color:transparent;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .subtitle{font-size:1.2rem;opacity:.8;margin-bottom:20px}
+        .upload-section{background:rgba(255,255,255,.1);border-radius:15px;padding:20px;margin-bottom:25px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 5px 15px rgba(0,0,0,.2)}
+        .upload-btn{position:relative;overflow:hidden;display:inline-block;cursor:pointer;padding:12px 30px;border-radius:50px;background:linear-gradient(45deg,#2193b0,#6dd5ed);color:#fff;font-weight:bold;transition:all .3s;box-shadow:0 4px 15px rgba(33,147,176,.4)}
+        .upload-btn:hover{transform:translateY(-3px);box-shadow:0 7px 20px rgba(33,147,176,.6)}
+        .upload-btn input{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
+        .file-name{font-size:.9rem;opacity:.8;margin-top:10px}
+        .search-container{max-width:600px;margin:0 auto 30px;position:relative}
+        .search-container input{width:100%;padding:14px 20px;border:none;border-radius:50px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);color:#fff;font-size:1.1rem;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+        .search-container input::placeholder{color:rgba(255,255,255,.7)}
+        .search-container i{position:absolute;right:20px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.7)}
+        .breadcrumb{display:flex;align-items:center;padding:15px 0;margin-bottom:20px;flex-wrap:wrap}
+        .breadcrumb-item{display:flex;align-items:center;font-size:1rem;cursor:pointer;transition:all .3s;padding:8px 15px;border-radius:30px;margin:5px;background:rgba(255,255,255,.08)}
+        .breadcrumb-item:hover{background:rgba(255,255,255,.15);transform:translateY(-2px)}
+        .breadcrumb-item.active{background:linear-gradient(45deg,#ff8a00,#ff0080)}
+        .breadcrumb i{margin:0 10px;opacity:.6}
+        .content{display:grid;grid-template-columns:300px 1fr;gap:25px}
+        .sidebar{background:rgba(30,30,46,.7);border-radius:20px;padding:25px;backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.3);max-height:80vh;overflow-y:auto}
+        .sidebar-title{font-size:1.4rem;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center}
+        .sidebar-title i{margin-right:10px;color:#ffd700}
+        .category-list{list-style:none}
+        .category-item{padding:14px 20px;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all .3s;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05)}
+        .category-item:hover{background:rgba(255,255,255,.1);transform:translateX(5px)}
+        .category-item.active{background:linear-gradient(45deg,#2193b0,#6dd5ed);box-shadow:0 5px 15px rgba(33,147,176,.4)}
+        .count{background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;font-size:.9rem}
+        .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:25px}
+        .card{background:rgba(30,30,46,.7);border-radius:18px;overflow:hidden;transition:all .4s;box-shadow:0 10px 20px rgba(0,0,0,.2);backdrop-filter:blur(10px);height:100%;display:flex;flex-direction:column}
+        .card:hover{transform:translateY(-10px);box-shadow:0 15px 30px rgba(0,0,0,.4)}
+        .card-img{height:240px;overflow:hidden;position:relative}
+        .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+        .card:hover .card-img img{transform:scale(1.05)}
+        .card-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);padding:20px}
+        .card-title{font-size:1.3rem;margin-bottom:5px}
+        .card-subtitle{font-size:.95rem;opacity:.8}
+        .card-content{padding:20px;flex-grow:1;display:flex;flex-direction:column}
+        .card-details{display:flex;justify-content:space-between;margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1)}
+        .detail-item{text-align:center}
+        .detail-value{font-size:1.1rem;font-weight:bold;color:#ffd700}
+        .detail-label{font-size:.85rem;opacity:.7;margin-top:5px}
+        .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:15px}
+        .btn{padding:10px 20px;border-radius:30px;background:linear-gradient(45deg,#ff8a00,#e52e71);color:#fff;border:none;cursor:pointer;font-weight:bold;transition:all .3s;display:inline-flex;align-items:center}
+        .btn i{margin-right:8px}
+        .btn:hover{transform:translateY(-3px);box-shadow:0 7px 15px rgba(229,46,113,.4)}
+        .no-results{grid-column:1/-1;text-align:center;padding:50px;font-size:1.2rem;opacity:.7}
+        .pagination{display:flex;justify-content:center;margin-top:30px;grid-column:1/-1}
+        .page-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 5px;background:rgba(255,255,255,.1);cursor:pointer;transition:all .3s}
+        .page-btn:hover,.page-btn.active{background:linear-gradient(45deg,#ff8a00,#e52e71)}
+        #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000}
+        #lightbox img{max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 40px rgba(255,255,255,.1)}
+        #closeBox{position:absolute;top:30px;right:30px;color:#fff;font-size:3rem;cursor:pointer;transition:all .3s}
+        #closeBox:hover{transform:scale(1.2)}
+        .notification{position:fixed;top:20px;right:20px;padding:15px 25px;border-radius:10px;background:linear-gradient(45deg,#00c853,#64dd17);color:#fff;font-weight:bold;box-shadow:0 5px 15px rgba(0,0,0,.3);transform:translateX(200%);transition:transform .4s;z-index:2000}
+        .notification.show{transform:translateX(0)}
+        .notification.error{background:linear-gradient(45deg,#ff5252,#ff1744)}
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-book"></i> 柏琪产品画册</h1>
-            <p class="subtitle">浏览我们的全系列金属产品 - 按品牌、分类、型号和色号筛选</p>
-            
+            <h1><i class="fas fa-book"></i> 产品图库系统</h1>
+            <p class="subtitle">上传产品数据文件，按品牌、系列浏览，支持搜索和分页</p>
             <div class="upload-section">
-                <div class="upload-container">
-                    <div class="upload-btn">
-                        <i class="fas fa-upload"></i> 上传产品数据文件
-                        <input type="file" id="file-input" accept=".txt">
-                    </div>
-                    <div class="file-name" id="file-name">未选择文件</div>
+                <div class="upload-btn">
+                    <i class="fas fa-upload"></i> 上传产品数据
+                    <input type="file" id="file-input" accept=".txt">
                 </div>
-                <p style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">
-                    请上传产品数据TXT文件
-                </p>
+                <div class="file-name" id="file-name">未选择文件</div>
             </div>
-            
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="搜索产品型号或色号...">
+                <input type="text" id="search-input" placeholder="搜索产品名称或颜色...">
                 <i class="fas fa-search"></i>
             </div>
         </header>
-        
+
         <div class="breadcrumb" id="breadcrumb">
             <div class="breadcrumb-item active" data-level="0">所有品牌</div>
         </div>
-        
+
         <div class="content">
             <div class="sidebar">
-                <h2 class="sidebar-title"><i class="fas fa-layer-group"></i> 产品分类</h2>
-                <ul class="category-list" id="category-list">
-                    <!-- 动态生成分类 -->
-                </ul>
+                <h2 class="sidebar-title"><i class="fas fa-layer-group"></i> 分类列表</h2>
+                <ul class="category-list" id="category-list"></ul>
             </div>
-            
             <div class="gallery" id="gallery">
                 <div class="no-results">
-                    <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 20px; opacity: 0.3;"></i>
-                    <p>欢迎使用柏琪产品画册系统</p>
-                    <p>请上传产品数据文件开始浏览</p>
+                    <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                    <p>欢迎使用产品图库系统</p>
+                    <p>请上传产品数据文件开始使用</p>
                 </div>
             </div>
         </div>
-        
-        <div class="pagination" id="pagination">
-            <!-- 动态生成分页按钮 -->
-        </div>
+
+        <div class="pagination" id="pagination"></div>
     </div>
-    
-    <!-- 全屏灯箱 -->
+
     <div id="lightbox">
         <span id="closeBox">×</span>
         <img id="lightImg" alt="">
     </div>
-    
-    <div class="notification" id="notification">数据加载成功！</div>
+
+    <div class="notification" id="notification">操作成功</div>
 
     <script>
-        // 产品数据结构
         let productIndex = {};
-        let sampleData = [].join("\n");
-        
-        // DOM元素
+        const state = {
+            currentLevel: 0,
+            currentBrand: null,
+            currentCategory: null,
+            currentPage: 1,
+            itemsPerPage: 8,
+            totalItems: 0,
+            totalPages: 1,
+            searchTerm: '',
+            dataLoaded: false
+        };
+
         const breadcrumb = document.getElementById('breadcrumb');
         const categoryList = document.getElementById('category-list');
         const gallery = document.getElementById('gallery');
@@ -597,619 +136,290 @@
         const fileInput = document.getElementById('file-input');
         const fileName = document.getElementById('file-name');
         const notification = document.getElementById('notification');
-        
-        // 应用状态
-        const state = {
-            currentLevel: 0, // 0:品牌, 1:分类, 2:产品
-            currentBrand: null,
-            currentCategory: null,
-            currentPage: 1,
-            itemsPerPage: 8,
-            totalItems: 0,
-            totalPages: 1,
-            searchTerm: '',
-            dataLoaded: false
-        };
-        
-        // 初始化应用
-        function initApp() {
-            renderBreadcrumb();
-            renderCategories();
-            renderGallery();
-            setupEventListeners();
-        }
-        
-        // 显示通知
+
         function showNotification(message, isError = false) {
             notification.textContent = message;
             notification.classList.toggle('error', isError);
             notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
-        
-        // 解析CSV数据
+
         function parseCSV(csvData) {
             const lines = csvData.trim().split(/\r?\n/);
             const items = [];
-            
             for (const line of lines) {
-                // 跳过空行和注释行
                 if (!line.trim() || line.startsWith('#')) continue;
-                
                 const parts = line.split(',').map(s => s.trim());
                 if (parts.length < 5) continue;
-                
                 const [url, brand, series, model, color] = parts;
-                items.push({ url, brand, series, model, color, key: model + color });
+                items.push({ url, brand, series, model, color });
             }
-            
             return items;
         }
-        
-        // 构建产品索引
+
         function buildProductIndex(items) {
             const index = {};
-            
-            items.forEach(({ url, brand, series, key, model, color }) => {
+            items.forEach(({ url, brand, series, model, color }) => {
                 if (!index[brand]) index[brand] = {};
                 if (!index[brand][series]) index[brand][series] = {};
-                index[brand][series][key] = { url, model, color };
+                index[brand][series][model + color] = { url, model, color };
             });
-            
             return index;
         }
-        
-        // 处理文件上传
-        function handleFileUpload(file) {
-            if (!file) return;
-            
-            fileName.textContent = file.name;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const csvData = e.target.result;
-                    const items = parseCSV(csvData);
-                    
-                    if (items.length === 0) {
-                        showNotification("文件内容为空或格式不正确", true);
-                        return;
-                    }
-                    
-                    productIndex = buildProductIndex(items);
-                    state.dataLoaded = true;
-                    state.currentLevel = 0;
-                    state.currentBrand = null;
-                    state.currentCategory = null;
-                    state.currentPage = 1;
-                    state.searchTerm = '';
-                    searchInput.value = '';
-                    
-                    // 保存到本地存储
-                    localStorage.setItem('productData', csvData);
-                    localStorage.setItem('fileName', file.name);
-                    
-                    showNotification(`成功加载 ${items.length} 条产品数据`);
-                    initApp();
-                } catch (error) {
-                    console.error('解析文件出错:', error);
-                    showNotification("解析文件时出错：" + error.message, true);
-                }
-            };
-            
-            reader.onerror = function() {
-                showNotification("读取文件失败", true);
-            };
-            
-            reader.readAsText(file);
-        }
-        
-        // 渲染面包屑导航
-        function renderBreadcrumb() {
-            breadcrumb.innerHTML = '';
-            
-            // 首页
-            const homeItem = document.createElement('div');
-            homeItem.className = 'breadcrumb-item' + (state.currentLevel === 0 ? ' active' : '');
-            homeItem.textContent = '所有品牌';
-            homeItem.dataset.level = '0';
-            breadcrumb.appendChild(homeItem);
-            
-            // 品牌层级
-            if (state.currentLevel >= 1 && state.currentBrand) {
-                const separator = document.createElement('i');
-                separator.className = 'fas fa-chevron-right';
-                breadcrumb.appendChild(separator);
-                
-                const brandItem = document.createElement('div');
-                brandItem.className = 'breadcrumb-item' + (state.currentLevel === 1 ? ' active' : '');
-                brandItem.textContent = state.currentBrand;
-                brandItem.dataset.level = '1';
-                brandItem.dataset.brand = state.currentBrand;
-                breadcrumb.appendChild(brandItem);
-            }
-            
-            // 分类层级
-            if (state.currentLevel >= 2 && state.currentCategory) {
-                const separator = document.createElement('i');
-                separator.className = 'fas fa-chevron-right';
-                breadcrumb.appendChild(separator);
-                
-                const categoryItem = document.createElement('div');
-                categoryItem.className = 'breadcrumb-item active';
-                categoryItem.textContent = state.currentCategory;
-                categoryItem.dataset.level = '2';
-                categoryItem.dataset.brand = state.currentBrand;
-                categoryItem.dataset.category = state.currentCategory;
-                breadcrumb.appendChild(categoryItem);
-            }
-        }
-        
-        // 渲染分类列表
-        function renderCategories() {
-            categoryList.innerHTML = '';
-            
-            if (!state.dataLoaded) return;
-            
-            if (state.currentLevel === 0) {
-                // 品牌层级 - 显示所有品牌
-                const brands = Object.keys(productIndex);
-                brands.forEach(brand => {
-                    const item = document.createElement('li');
-                    item.className = 'category-item' + 
-                        (state.currentBrand === brand ? ' active' : '');
-                    item.innerHTML = `
-                        <span>${brand}</span>
-                        <span class="count">${getBrandProductCount(brand)}</span>
-                    `;
-                    
-                    item.addEventListener('click', () => {
-                        state.currentBrand = brand;
-                        state.currentLevel = 1;
-                        state.currentPage = 1;
-                        state.searchTerm = '';
-                        searchInput.value = '';
-                        renderBreadcrumb();
-                        renderCategories();
-                        renderGallery();
-                    });
-                    
-                    categoryList.appendChild(item);
-                });
-            } else if (state.currentLevel >= 1 && state.currentBrand) {
-                // 分类层级 - 显示当前品牌下的分类
-                const seriesList = Object.keys(productIndex[state.currentBrand]);
-                seriesList.forEach(series => {
-                    const item = document.createElement('li');
-                    item.className = 'category-item' + 
-                        (state.currentCategory === series ? ' active' : '');
-                    item.innerHTML = `
-                        <span>${series}</span>
-                        <span class="count">${Object.keys(productIndex[state.currentBrand][series]).length}</span>
-                    `;
-                    
-                    item.addEventListener('click', () => {
-                        state.currentCategory = series;
-                        state.currentLevel = 2;
-                        state.currentPage = 1;
-                        state.searchTerm = '';
-                        searchInput.value = '';
-                        renderBreadcrumb();
-                        renderCategories();
-                        renderGallery();
-                    });
-                    
-                    categoryList.appendChild(item);
-                });
-            }
-        }
-        
-        // 获取品牌产品总数
+
         function getBrandProductCount(brand) {
-            if (!productIndex[brand]) return 0;
             let count = 0;
-            Object.keys(productIndex[brand]).forEach(series => {
+            Object.keys(productIndex[brand] || {}).forEach(series => {
                 count += Object.keys(productIndex[brand][series]).length;
             });
             return count;
         }
-        
-        // 渲染产品画廊
+
+        function renderBreadcrumb() {
+            breadcrumb.innerHTML = '';
+            const home = document.createElement('div');
+            home.className = 'breadcrumb-item' + (state.currentLevel === 0 ? ' active' : '');
+            home.textContent = '所有品牌';
+            home.dataset.level = '0';
+            breadcrumb.appendChild(home);
+
+            if (state.currentLevel >= 1 && state.currentBrand) {
+                breadcrumb.appendChild(Object.assign(document.createElement('i'), { className: 'fas fa-chevron-right' }));
+                const brandItem = document.createElement('div');
+                brandItem.className = 'breadcrumb-item' + (state.currentLevel === 1 ? ' active' : '');
+                brandItem.textContent = state.currentBrand;
+                brandItem.dataset.level = '1';
+                breadcrumb.appendChild(brandItem);
+            }
+
+            if (state.currentLevel >= 2 && state.currentCategory) {
+                breadcrumb.appendChild(Object.assign(document.createElement('i'), { className: 'fas fa-chevron-right' }));
+                const catItem = document.createElement('div');
+                catItem.className = 'breadcrumb-item active';
+                catItem.textContent = state.currentCategory;
+                breadcrumb.appendChild(catItem);
+            }
+        }
+
+        function renderCategories() {
+            categoryList.innerHTML = '';
+            if (!state.dataLoaded) return;
+            if (state.currentLevel === 0) {
+                Object.keys(productIndex).forEach(brand => {
+                    const li = document.createElement('li');
+                    li.className = 'category-item' + (state.currentBrand === brand ? ' active' : '');
+                    li.innerHTML = `<span>${brand}</span><span class="count">${getBrandProductCount(brand)}</span>`;
+                    li.onclick = () => {
+                        state.currentBrand = brand;
+                        state.currentLevel = 1;
+                        state.currentPage = 1;
+                        initApp();
+                    };
+                    categoryList.appendChild(li);
+                });
+            } else if (state.currentLevel === 1) {
+                Object.keys(productIndex[state.currentBrand]).forEach(series => {
+                    const li = document.createElement('li');
+                    li.className = 'category-item' + (state.currentCategory === series ? ' active' : '');
+                    li.innerHTML = `<span>${series}</span><span class="count">${Object.keys(productIndex[state.currentBrand][series]).length}</span>`;
+                    li.onclick = () => {
+                        state.currentCategory = series;
+                        state.currentLevel = 2;
+                        state.currentPage = 1;
+                        initApp();
+                    };
+                    categoryList.appendChild(li);
+                });
+            }
+        }
+
         function renderGallery() {
             if (!state.dataLoaded) return;
-            
-            // 显示加载状态
-            gallery.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>加载产品数据中...</p>
-                </div>
-            `;
-            
-            // 延迟渲染以提高性能
+            gallery.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
             setTimeout(() => {
-                let products = [];
-                
+                let items = [];
                 if (state.currentLevel === 0) {
-                    // 品牌层级 - 显示所有品牌卡片
-                    const brands = Object.keys(productIndex);
-                    brands.forEach(brand => {
-                        const brandItem = {
-                            type: 'brand',
-                            name: brand,
-                            count: getBrandProductCount(brand)
-                        };
-                        products.push(brandItem);
-                    });
-                } 
-                else if (state.currentLevel === 1 && state.currentBrand) {
-                    // 分类层级 - 显示当前品牌下的分类卡片
-                    const seriesList = Object.keys(productIndex[state.currentBrand]);
-                    seriesList.forEach(series => {
-                        const seriesItem = {
-                            type: 'series',
-                            name: series,
-                            count: Object.keys(productIndex[state.currentBrand][series]).length
-                        };
-                        products.push(seriesItem);
-                    });
-                } 
-                else if (state.currentLevel === 2 && state.currentBrand && state.currentCategory) {
-                    // 产品层级 - 显示当前分类下的产品
-                    const productKeys = Object.keys(productIndex[state.currentBrand][state.currentCategory]);
-                    products = productKeys.map(key => {
-                        return {
-                            type: 'product',
-                            ...productIndex[state.currentBrand][state.currentCategory][key],
-                            key
-                        };
-                    });
-                    
-                    // 应用搜索过滤
+                    items = Object.keys(productIndex).map(brand => ({ type: 'brand', name: brand, count: getBrandProductCount(brand) }));
+                } else if (state.currentLevel === 1) {
+                    items = Object.keys(productIndex[state.currentBrand]).map(series => ({ type: 'series', name: series, count: Object.keys(productIndex[state.currentBrand][series]).length }));
+                } else if (state.currentLevel === 2) {
+                    items = Object.values(productIndex[state.currentBrand][state.currentCategory]).map(p => ({ type: 'product', ...p }));
                     if (state.searchTerm) {
-                        const term = state.searchTerm.toLowerCase();
-                        products = products.filter(product => 
-                            product.model.toLowerCase().includes(term) || 
-                            product.color.toLowerCase().includes(term)
-                        );
+                        items = items.filter(p => p.model.includes(state.searchTerm) || p.color.includes(state.searchTerm));
                     }
                 }
-                
-                state.totalItems = products.length;
+
+                state.totalItems = items.length;
                 state.totalPages = Math.ceil(state.totalItems / state.itemsPerPage);
-                
-                // 检查是否有结果
-                if (products.length === 0) {
-                    gallery.innerHTML = `
-                        <div class="no-results">
-                            <i class="fas fa-search fa-2x" style="margin-bottom: 20px;"></i>
-                            <p>没有找到匹配的产品</p>
-                            <p>请尝试其他搜索关键词</p>
-                        </div>
-                    `;
-                    renderPagination();
+                const start = (state.currentPage - 1) * state.itemsPerPage;
+                const currentItems = items.slice(start, start + state.itemsPerPage);
+
+                gallery.innerHTML = '';
+                if (currentItems.length === 0) {
+                    gallery.innerHTML = `<div class="no-results"><i class="fas fa-search fa-2x"></i><p>未找到结果</p><p>请尝试其他关键词</p></div>`;
                     return;
                 }
-                
-                // 分页
-                const startIndex = (state.currentPage - 1) * state.itemsPerPage;
-                const endIndex = Math.min(startIndex + state.itemsPerPage, products.length);
-                const currentProducts = products.slice(startIndex, endIndex);
-                
-                // 渲染产品卡片
-                gallery.innerHTML = '';
-                currentProducts.forEach(item => {
-                    const card = createCard(item);
+
+                currentItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    let imgSrc = '';
+                    if (item.type === 'brand') {
+                        const seriesKeys = Object.keys(productIndex[item.name]);
+                        if (seriesKeys.length) {
+                            const firstSeries = seriesKeys[0];
+                            const productKeys = Object.keys(productIndex[item.name][firstSeries]);
+                            if (productKeys.length) imgSrc = productIndex[item.name][firstSeries][productKeys[0]].url;
+                        }
+                    } else if (item.type === 'series') {
+                        const productKeys = Object.keys(productIndex[state.currentBrand][item.name]);
+                        if (productKeys.length) imgSrc = productIndex[state.currentBrand][item.name][productKeys[0]].url;
+                    } else {
+                        imgSrc = item.url;
+                    }
+
+                    card.innerHTML = `
+                        <div class="card-img">
+                            <img src="${imgSrc}" alt="${item.name || item.model}" loading="lazy">
+                            <div class="card-overlay">
+                                <h3 class="card-title">${item.name || item.model}</h3>
+                                <p class="card-subtitle">${item.type === 'product' ? item.color : ''}</p>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-details">
+                                <div class="detail-item">
+                                    <div class="detail-value">${item.count || item.color}</div>
+                                    <div class="detail-label">${item.type === 'product' ? '颜色' : '数量'}</div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn"><i class="fas fa-eye"></i> 查看</button>
+                            </div>
+                        </div>
+                    `;
+
+                    if (item.type === 'brand') {
+                        card.onclick = () => {
+                            state.currentBrand = item.name;
+                            state.currentLevel = 1;
+                            state.currentPage = 1;
+                            initApp();
+                        };
+                    } else if (item.type === 'series') {
+                        card.onclick = () => {
+                            state.currentCategory = item.name;
+                            state.currentLevel = 2;
+                            state.currentPage = 1;
+                            initApp();
+                        };
+                    } else {
+                        card.onclick = () => {
+                            lightImg.src = item.url;
+                            lightbox.style.display = 'flex';
+                        };
+                    }
+
                     gallery.appendChild(card);
                 });
-                
-                // 渲染分页
+
                 renderPagination();
             }, 300);
         }
-        
-        // 创建产品卡片
-        function createCard(item) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            if (item.type === 'brand') {
-                card.innerHTML = `
-                    <div class="card-img">
-                        <img src="https://via.placeholder.com/400x240/1a2a6c/ffffff?text=${encodeURIComponent(item.name)}" 
-                             alt="${item.name}" loading="lazy">
-                        <div class="card-overlay">
-                            <h3 class="card-title">${item.name}</h3>
-                            <p class="card-subtitle">品牌系列</p>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <p>浏览${item.name}品牌的全部产品系列</p>
-                        <div class="card-details">
-                            <div class="detail-item">
-                                <div class="detail-value">${item.count}</div>
-                                <div class="detail-label">产品总数</div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn">
-                                <i class="fas fa-eye"></i> 查看品牌
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    state.currentBrand = item.name;
-                    state.currentLevel = 1;
-                    state.currentPage = 1;
-                    renderBreadcrumb();
-                    renderCategories();
-                    renderGallery();
-                });
-            } 
-            else if (item.type === 'series') {
-                card.innerHTML = `
-                    <div class="card-img">
-                        <img src="https://via.placeholder.com/400x240/2c3e50/ffffff?text=${encodeURIComponent(item.name)}" 
-                             alt="${item.name}" loading="lazy">
-                        <div class="card-overlay">
-                            <h3 class="card-title">${item.name}</h3>
-                            <p class="card-subtitle">${state.currentBrand}</p>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <p>浏览${item.name}系列的全部产品</p>
-                        <div class="card-details">
-                            <div class="detail-item">
-                                <div class="detail-value">${item.count}</div>
-                                <div class="detail-label">产品数量</div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn">
-                                <i class="fas fa-eye"></i> 查看系列
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    state.currentCategory = item.name;
-                    state.currentLevel = 2;
-                    state.currentPage = 1;
-                    renderBreadcrumb();
-                    renderCategories();
-                    renderGallery();
-                });
-            } 
-            else if (item.type === 'product') {
-                // 生成随机颜色（实际应用中应从数据获取）
-                const colors = generateRandomColors(1 + Math.floor(Math.random() * 3));
-                
-                card.innerHTML = `
-                    <div class="card-img">
-                        <img src="${item.url}" 
-                             alt="${item.model} - ${item.color}" 
-                             loading="lazy">
-                        <div class="card-overlay">
-                            <h3 class="card-title">${item.model}</h3>
-                            <p class="card-subtitle">${state.currentCategory}</p>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <p>${getProductDescription(item.model)}</p>
-                        <div class="card-details">
-                            <div class="detail-item">
-                                <div class="detail-value">${item.color}</div>
-                                <div class="detail-label">色号</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-value">${getSeriesCode(item.model)}</div>
-                                <div class="detail-label">系列</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-value">${getQualityGrade()}</div>
-                                <div class="detail-label">等级</div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div>
-                                ${colors.map(color => 
-                                    `<span class="color-badge" style="background-color: ${color};"></span>`
-                                ).join('')}
-                            </div>
-                            <button class="btn view-detail">
-                                <i class="fas fa-expand"></i> 查看详情
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加查看详情事件
-                const viewBtn = card.querySelector('.view-detail');
-                viewBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    lightImg.src = item.url;
-                    lightbox.style.display = 'flex';
-                });
-                
-                // 点击卡片查看大图
-                card.addEventListener('click', () => {
-                    lightImg.src = item.url;
-                    lightbox.style.display = 'flex';
-                });
-            }
-            
-            return card;
-        }
-        
-        // 生成随机颜色
-        function generateRandomColors(count) {
-            const colors = [];
-            const colorPalette = [
-                '#8B4513', '#CD853F', '#D2B48C', // 棕色系
-                '#708090', '#2F4F4F', '#696969',  // 灰色系
-                '#556B2F', '#6B8E23',             // 绿色系
-                '#800000', '#8B0000',             // 红色系
-                '#483D8B', '#6A5ACD', '#7B68EE'  // 紫色系
-            ];
-            
-            for (let i = 0; i < count; i++) {
-                colors.push(colorPalette[Math.floor(Math.random() * colorPalette.length)]);
-            }
-            return colors;
-        }
-        
-        // 获取产品描述
-        function getProductDescription(model) {
-            const descriptions = [
-                ""];
-            return descriptions[Math.floor(Math.random() * descriptions.length)];
-        }
-        
-        // 获取系列代码
-        function getSeriesCode(model) {
-            return model.substring(0, 3);
-        }
-        
-        // 获取质量等级
-        function getQualityGrade() {
-            return Math.random() > 0.7 ? "A+" : "A";
-        }
-        
-        // 渲染分页控件
+
         function renderPagination() {
-            if (state.totalPages <= 1) {
-                paginationEl.style.display = 'none';
-                return;
-            }
-            
-            paginationEl.style.display = 'flex';
             paginationEl.innerHTML = '';
-            
-            // 上一页按钮
-            const prevBtn = document.createElement('div');
-            prevBtn.className = 'page-btn' + (state.currentPage === 1 ? ' disabled' : '');
-            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            prevBtn.addEventListener('click', () => {
+            if (state.totalPages <= 1) return;
+            const prev = document.createElement('div');
+            prev.className = 'page-btn' + (state.currentPage === 1 ? ' disabled' : '');
+            prev.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prev.onclick = () => {
                 if (state.currentPage > 1) {
                     state.currentPage--;
                     renderGallery();
                 }
-            });
-            paginationEl.appendChild(prevBtn);
-            
-            // 页码按钮
-            const startPage = Math.max(1, state.currentPage - 2);
-            const endPage = Math.min(state.totalPages, state.currentPage + 2);
-            
-            for (let i = startPage; i <= endPage; i++) {
-                const pageBtn = document.createElement('div');
-                pageBtn.className = 'page-btn' + (i === state.currentPage ? ' active' : '');
-                pageBtn.textContent = i;
-                pageBtn.addEventListener('click', () => {
+            };
+            paginationEl.appendChild(prev);
+
+            for (let i = 1; i <= state.totalPages; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'page-btn' + (i === state.currentPage ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => {
                     state.currentPage = i;
                     renderGallery();
-                });
-                paginationEl.appendChild(pageBtn);
+                };
+                paginationEl.appendChild(btn);
             }
-            
-            // 下一页按钮
-            const nextBtn = document.createElement('div');
-            nextBtn.className = 'page-btn' + (state.currentPage === state.totalPages ? ' disabled' : '');
-            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            nextBtn.addEventListener('click', () => {
+
+            const next = document.createElement('div');
+            next.className = 'page-btn' + (state.currentPage === state.totalPages ? ' disabled' : '');
+            next.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            next.onclick = () => {
                 if (state.currentPage < state.totalPages) {
                     state.currentPage++;
                     renderGallery();
                 }
-            });
-            paginationEl.appendChild(nextBtn);
+            };
+            paginationEl.appendChild(next);
         }
-        
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 面包屑导航点击事件
-            breadcrumb.addEventListener('click', (e) => {
-                const item = e.target.closest('.breadcrumb-item');
-                if (!item) return;
-                
-                const level = parseInt(item.dataset.level);
-                if (level === 0) {
-                    // 返回首页
-                    state.currentLevel = 0;
-                    state.currentBrand = null;
-                    state.currentCategory = null;
-                    state.currentPage = 1;
-                    state.searchTerm = '';
-                    searchInput.value = '';
-                    renderBreadcrumb();
-                    renderCategories();
-                    renderGallery();
-                } 
-                else if (level === 1) {
-                    // 返回品牌层级
-                    state.currentLevel = 1;
-                    state.currentCategory = null;
-                    state.currentPage = 1;
-                    state.searchTerm = '';
-                    searchInput.value = '';
-                    renderBreadcrumb();
-                    renderCategories();
-                    renderGallery();
-                }
-            });
-            
-            // 搜索功能
-            searchInput.addEventListener('input', function() {
-                state.searchTerm = this.value.trim();
-                state.currentPage = 1;
-                renderGallery();
-            });
-            
-            // 灯箱关闭事件
-            closeBox.addEventListener('click', () => {
-                lightbox.style.display = 'none';
-            });
-            
-            // 点击灯箱背景关闭
-            lightbox.addEventListener('click', (e) => {
-                if (e.target === lightbox) {
-                    lightbox.style.display = 'none';
-                }
-            });
-            
-            // 文件上传事件
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleFileUpload(e.target.files[0]);
-                }
-            });
+
+        function initApp() {
+            renderBreadcrumb();
+            renderCategories();
+            renderGallery();
         }
-        
-        // 检查本地存储中是否有数据
-        function checkLocalStorage() {
-            const savedData = localStorage.getItem('productData');
-            const savedFileName = localStorage.getItem('fileName');
-            
-            if (savedData) {
-                fileName.textContent = savedFileName || '已保存的数据文件';
-                const items = parseCSV(savedData);
+
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = () => {
+                const items = parseCSV(reader.result);
+                if (items.length === 0) {
+                    showNotification('数据格式错误或为空', true);
+                    return;
+                }
                 productIndex = buildProductIndex(items);
                 state.dataLoaded = true;
-                showNotification(`已加载本地保存的 ${items.length} 条产品数据`);
-            } else {
-                // 加载示例数据
-                handleFileUpload(new File([sampleData], "示例数据.txt"));
+                state.currentLevel = 0;
+                state.currentBrand = null;
+                state.currentCategory = null;
+                state.currentPage = 1;
+                initApp();
+                showNotification(`成功加载 ${items.length} 条产品数据`);
+            };
+            reader.readAsText(file);
+        });
+
+        searchInput.addEventListener('input', () => {
+            state.searchTerm = searchInput.value.trim();
+            state.currentPage = 1;
+            renderGallery();
+        });
+
+        closeBox.onclick = () => lightbox.style.display = 'none';
+
+        breadcrumb.addEventListener('click', e => {
+            const item = e.target.closest('.breadcrumb-item');
+            if (!item) return;
+            const level = parseInt(item.dataset.level ?? 0);
+            if (level === 0) {
+                state.currentLevel = 0;
+                state.currentBrand = null;
+                state.currentCategory = null;
+                state.currentPage = 1;
+                initApp();
+            } else if (level === 1) {
+                state.currentLevel = 1;
+                state.currentCategory = null;
+                state.currentPage = 1;
+                initApp();
             }
-        }
-        
-        // 初始化应用
-        checkLocalStorage();
+        });
+
         initApp();
     </script>
 </body>
