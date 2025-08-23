@@ -62,12 +62,11 @@
         .pagination{display:flex;justify-content:center;margin-top:20px;grid-column:1/-1;flex-wrap:wrap}
         .page-btn{width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:3px;background:rgba(255,255,255,.1);cursor:pointer;font-size:.8rem;transition:all .3s}
         .page-btn:hover,.page-btn.active{background:linear-gradient(45deg,#ff8a00,#e52e71)}
-        /* lightbox放大缩小 */
         #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
         #lightbox img{max-width:95%;max-height:70%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,.1);transition:transform .3s}
         #lightbox-controls{position:absolute;bottom:20px;display:flex;gap:15px}
-        #lightbox-controls button{padding:10px 15px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:1.2rem;cursor:pointer;transition:background .3s}
-        #lightbox-controls button:hover{background:rgba(255,255,255,.4)}
+        #lightbox-controls button{padding:12px 18px;border:none;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;font-size:1.3rem;cursor:pointer;transition:background .3s;box-shadow:0 2px 8px rgba(0,0,0,0.5)}
+        #lightbox-controls button:hover{background:rgba(0,0,0,0.9)}
         #closeBox{position:absolute;top:15px;right:20px;color:#fff;font-size:2.5rem;cursor:pointer;transition:all .3s}
         #closeBox:hover{transform:scale(1.2)}
         .notification{position:fixed;top:15px;right:15px;padding:12px 20px;border-radius:8px;background:linear-gradient(45deg,#00c853,#64dd17);color:#fff;font-weight:bold;font-size:.9rem;box-shadow:0 3px 10px rgba(0,0,0,.3);transform:translateX(200%);transition:transform .4s;z-index:2000}
@@ -88,7 +87,7 @@
                 <div class="file-name" id="file-name">未选择文件</div>
             </div>
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="搜索产品名称或颜色...">
+                <input type="text" id="search-input" placeholder="搜索产品名称、颜色、品牌或系列...">
                 <i class="fas fa-search"></i>
             </div>
         </header>
@@ -128,6 +127,7 @@
 
     <script>
         let productIndex = {};
+        let allProducts = [];
         let scale = 1;
         const state = {
             currentLevel: 0,
@@ -175,12 +175,24 @@
 
         function buildProductIndex(items) {
             const index = {};
+            allProducts = items;
             items.forEach(({ url, brand, series, model, color }) => {
                 if (!index[brand]) index[brand] = {};
                 if (!index[brand][series]) index[brand][series] = {};
                 index[brand][series][model + color] = { url, model, color };
             });
             return index;
+        }
+
+        function performGlobalSearch(term) {
+            if (!term.trim()) return [];
+            const lowerTerm = term.toLowerCase();
+            return allProducts.filter(p => 
+                p.model.toLowerCase().includes(lowerTerm) || 
+                p.color.toLowerCase().includes(lowerTerm) ||
+                p.brand.toLowerCase().includes(lowerTerm) ||
+                p.series.toLowerCase().includes(lowerTerm)
+            );
         }
 
         function getBrandProductCount(brand) {
@@ -229,6 +241,8 @@
                         state.currentBrand = brand;
                         state.currentLevel = 1;
                         state.currentPage = 1;
+                        state.searchTerm = '';
+                        searchInput.value = '';
                         initApp();
                     };
                     categoryList.appendChild(li);
@@ -254,14 +268,16 @@
             gallery.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
             setTimeout(() => {
                 let items = [];
-                if (state.currentLevel === 0) {
-                    items = Object.keys(productIndex).map(brand => ({ type: 'brand', name: brand, count: getBrandProductCount(brand) }));
-                } else if (state.currentLevel === 1) {
-                    items = Object.keys(productIndex[state.currentBrand]).map(series => ({ type: 'series', name: series, count: Object.keys(productIndex[state.currentBrand][series]).length }));
-                } else if (state.currentLevel === 2) {
-                    items = Object.values(productIndex[state.currentBrand][state.currentCategory]).map(p => ({ type: 'product', ...p }));
-                    if (state.searchTerm) {
-                        items = items.filter(p => p.model.includes(state.searchTerm) || p.color.includes(state.searchTerm));
+
+                if (state.searchTerm) {
+                    items = performGlobalSearch(state.searchTerm).map(p => ({ type: 'product', ...p }));
+                } else {
+                    if (state.currentLevel === 0) {
+                        items = Object.keys(productIndex).map(brand => ({ type: 'brand', name: brand, count: getBrandProductCount(brand) }));
+                    } else if (state.currentLevel === 1) {
+                        items = Object.keys(productIndex[state.currentBrand]).map(series => ({ type: 'series', name: series, count: Object.keys(productIndex[state.currentBrand][series]).length }));
+                    } else if (state.currentLevel === 2) {
+                        items = Object.values(productIndex[state.currentBrand][state.currentCategory]).map(p => ({ type: 'product', ...p }));
                     }
                 }
 
@@ -272,7 +288,7 @@
 
                 gallery.innerHTML = '';
                 if (currentItems.length === 0) {
-                    gallery.innerHTML = `<div class="no-results"><i class="fas fa-search fa-2x"></i><p>未找到结果</p><p>请尝试其他关键词</p></div>`;
+                    gallery.innerHTML = `<div class="no-results"><i class="fas fa-search fa-2x"></i><p>未找到"${state.searchTerm}"相关结果</p></div>`;
                     return;
                 }
 
@@ -300,7 +316,7 @@
                             <img src="${imgSrc}" alt="${item.name || item.model}" loading="lazy">
                             <div class="card-overlay">
                                 <h3 class="card-title">${item.name || item.model}</h3>
-                                <p class="card-subtitle">${item.type === 'product' ? item.color : ''}</p>
+                                <p class="card-subtitle">${item.type === 'product' ? `${item.brand} - ${item.series}` : ''}</p>
                             </div>
                         </div>
                         <div class="card-content">
@@ -321,6 +337,8 @@
                             state.currentBrand = item.name;
                             state.currentLevel = 1;
                             state.currentPage = 1;
+                            state.searchTerm = '';
+                            searchInput.value = '';
                             initApp();
                         };
                     } else if (item.type === 'series') {
@@ -403,6 +421,28 @@
             applyScale();
         });
 
+        function saveDataToLocalStorage(data) {
+            localStorage.setItem('productData', data);
+            localStorage.setItem('productIndex', JSON.stringify(productIndex));
+            localStorage.setItem('allProducts', JSON.stringify(allProducts));
+        }
+
+        function loadDataFromLocalStorage() {
+            const data = localStorage.getItem('productData');
+            const index = localStorage.getItem('productIndex');
+            const products = localStorage.getItem('allProducts');
+            
+            if (data && index && products) {
+                productIndex = JSON.parse(index);
+                allProducts = JSON.parse(products);
+                state.dataLoaded = true;
+                initApp();
+                showNotification('已加载本地缓存数据');
+                return true;
+            }
+            return false;
+        }
+
         fileInput.addEventListener('change', e => {
             const file = e.target.files[0];
             if (!file) return;
@@ -415,6 +455,7 @@
                     return;
                 }
                 productIndex = buildProductIndex(items);
+                saveDataToLocalStorage(reader.result);
                 state.dataLoaded = true;
                 state.currentLevel = 0;
                 state.currentBrand = null;
@@ -452,7 +493,10 @@
             }
         });
 
-        initApp();
+        window.addEventListener('load', () => {
+            loadDataFromLocalStorage();
+            initApp();
+        });
     </script>
 </body>
 </html>
