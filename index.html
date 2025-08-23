@@ -118,17 +118,23 @@
         <span id="closeBox">×</span>
         <img id="lightImg" alt="">
         <div id="lightbox-controls">
-            <button id="zoomIn" title="放大"><i class="fas fa-search-plus"></i></button>
+            <button id="prevBtn" title="上一张"><i class="fas fa-chevron-left"></i></button>
             <button id="zoomOut" title="缩小"><i class="fas fa-search-minus"></i></button>
+            <button id="zoomIn" title="放大"><i class="fas fa-search-plus"></i></button>
+            <button id="nextBtn" title="下一张"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 
     <div class="notification" id="notification">操作成功</div>
 
     <script>
-        let productIndex = {};
-        let allProducts = [];
+        /* ========= 基础变量 ========= */
+        let productIndex   = {};
+        let allProducts    = [];
+        let currentBrandProducts = [];   // 当前品牌所有型号（排序后）
+        let currentProdIdx = 0;          // 大图浏览时当前索引
         let scale = 1;
+
         const state = {
             currentLevel: 0,
             currentBrand: null,
@@ -139,123 +145,117 @@
             dataLoaded: false
         };
 
-        const breadcrumb = document.getElementById('breadcrumb');
+        /* ========= DOM 引用 ========= */
+        const breadcrumb   = document.getElementById('breadcrumb');
         const categoryList = document.getElementById('category-list');
-        const gallery = document.getElementById('gallery');
+        const gallery      = document.getElementById('gallery');
         const paginationEl = document.getElementById('pagination');
-        const searchInput = document.getElementById('search-input');
-        const lightbox = document.getElementById('lightbox');
-        const lightImg = document.getElementById('lightImg');
-        const closeBox = document.getElementById('closeBox');
-        const zoomInBtn = document.getElementById('zoomIn');
-        const zoomOutBtn = document.getElementById('zoomOut');
-        const fileInput = document.getElementById('file-input');
-        const fileName = document.getElementById('file-name');
+        const searchInput  = document.getElementById('search-input');
+        const lightbox     = document.getElementById('lightbox');
+        const lightImg     = document.getElementById('lightImg');
+        const closeBox     = document.getElementById('closeBox');
+        const prevBtn      = document.getElementById('prevBtn');
+        const nextBtn      = document.getElementById('nextBtn');
+        const zoomInBtn    = document.getElementById('zoomIn');
+        const zoomOutBtn   = document.getElementById('zoomOut');
+        const fileInput    = document.getElementById('file-input');
+        const fileName     = document.getElementById('file-name');
         const notification = document.getElementById('notification');
 
-        function showNotification(message, isError = false) {
-            notification.textContent = message;
-            notification.classList.toggle('error', isError);
+        /* ========= 工具函数 ========= */
+        function showNotification(msg, err=false){
+            notification.textContent = msg;
+            notification.classList.toggle('error', err);
             notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
+            setTimeout(()=>notification.classList.remove('show'), 3000);
         }
 
-        function parseCSV(csvData) {
+        function parseCSV(csvData){
             const lines = csvData.trim().split(/\r?\n/);
-            const items = [];
-            for (const line of lines) {
-                if (!line.trim() || line.startsWith('#')) continue;
-                const parts = line.split(',').map(s => s.trim());
-                if (parts.length < 5) continue;
+            const items=[];
+            for(const line of lines){
+                if(!line.trim() || line.startsWith('#')) continue;
+                const parts = line.split(',').map(s=>s.trim());
+                if(parts.length<5) continue;
                 const [url, brand, series, model, color] = parts;
-                items.push({ url, brand, series, model, color });
+                items.push({url, brand, series, model, color});
             }
             return items;
         }
 
-        function buildProductIndex(items) {
+        function buildProductIndex(items){
             const index = {};
             allProducts = items;
-            items.forEach(({ url, brand, series, model, color }) => {
-                if (!index[brand]) index[brand] = {};
-                if (!index[brand][series]) index[brand][series] = {};
-                index[brand][series][model + color] = { url, model, color };
+            items.forEach(p=>{
+                if(!index[p.brand]) index[p.brand] = {};
+                if(!index[p.brand][p.series]) index[p.brand][p.series] = {};
+                index[p.brand][p.series][p.model+p.color] = p;
             });
             return index;
         }
 
-        function performGlobalSearch(term) {
-            if (!term.trim()) return [];
-            const lowerTerm = term.toLowerCase();
-            return allProducts.filter(p => 
-                p.model.toLowerCase().includes(lowerTerm) || 
-                p.color.toLowerCase().includes(lowerTerm) ||
-                p.brand.toLowerCase().includes(lowerTerm) ||
-                p.series.toLowerCase().includes(lowerTerm)
+        function performGlobalSearch(term){
+            if(!term.trim()) return [];
+            const t = term.toLowerCase();
+            return allProducts.filter(p=>
+                p.model.toLowerCase().includes(t) ||
+                p.color.toLowerCase().includes(t) ||
+                p.brand.toLowerCase().includes(t) ||
+                p.series.toLowerCase().includes(t)
             );
         }
 
-        function getBrandProductCount(brand) {
-            let count = 0;
-            Object.keys(productIndex[brand] || {}).forEach(series => {
-                count += Object.keys(productIndex[brand][series]).length;
-            });
-            return count;
+        function getBrandProductCount(brand){
+            let c=0;
+            Object.values(productIndex[brand]||{}).forEach(series=> c+=Object.keys(series).length);
+            return c;
         }
 
-        function renderBreadcrumb() {
-            breadcrumb.innerHTML = '';
-            const home = document.createElement('div');
-            home.className = 'breadcrumb-item' + (state.currentLevel === 0 ? ' active' : '');
-            home.textContent = '所有品牌';
-            home.dataset.level = '0';
+        /* ========= 渲染函数 ========= */
+        function renderBreadcrumb(){
+            breadcrumb.innerHTML='';
+            const home=document.createElement('div');
+            home.className='breadcrumb-item'+(state.currentLevel===0?' active':'');
+            home.textContent='所有品牌'; home.dataset.level='0';
             breadcrumb.appendChild(home);
 
-            if (state.currentLevel >= 1 && state.currentBrand) {
-                breadcrumb.appendChild(Object.assign(document.createElement('i'), { className: 'fas fa-chevron-right' }));
-                const brandItem = document.createElement('div');
-                brandItem.className = 'breadcrumb-item' + (state.currentLevel === 1 ? ' active' : '');
-                brandItem.textContent = state.currentBrand;
-                brandItem.dataset.level = '1';
-                breadcrumb.appendChild(brandItem);
+            if(state.currentLevel>=1 && state.currentBrand){
+                breadcrumb.appendChild(Object.assign(document.createElement('i'),{className:'fas fa-chevron-right'}));
+                const b=document.createElement('div');
+                b.className='breadcrumb-item'+(state.currentLevel===1?' active':'');
+                b.textContent=state.currentBrand; b.dataset.level='1';
+                breadcrumb.appendChild(b);
             }
-
-            if (state.currentLevel >= 2 && state.currentCategory) {
-                breadcrumb.appendChild(Object.assign(document.createElement('i'), { className: 'fas fa-chevron-right' }));
-                const catItem = document.createElement('div');
-                catItem.className = 'breadcrumb-item active';
-                catItem.textContent = state.currentCategory;
-                breadcrumb.appendChild(catItem);
+            if(state.currentLevel>=2 && state.currentCategory){
+                breadcrumb.appendChild(Object.assign(document.createElement('i'),{className:'fas fa-chevron-right'}));
+                const c=document.createElement('div');
+                c.className='breadcrumb-item active';
+                c.textContent=state.currentCategory;
+                breadcrumb.appendChild(c);
             }
         }
 
-        function renderCategories() {
-            categoryList.innerHTML = '';
-            if (!state.dataLoaded) return;
-            if (state.currentLevel === 0) {
-                Object.keys(productIndex).forEach(brand => {
-                    const li = document.createElement('li');
-                    li.className = 'category-item' + (state.currentBrand === brand ? ' active' : '');
-                    li.innerHTML = `<span>${brand}</span><span class="count">${getBrandProductCount(brand)}</span>`;
-                    li.onclick = () => {
-                        state.currentBrand = brand;
-                        state.currentLevel = 1;
-                        state.currentPage = 1;
-                        state.searchTerm = '';
-                        searchInput.value = '';
-                        initApp();
+        function renderCategories(){
+            categoryList.innerHTML='';
+            if(!state.dataLoaded) return;
+            if(state.currentLevel===0){
+                Object.keys(productIndex).forEach(brand=>{
+                    const li=document.createElement('li');
+                    li.className='category-item'+(state.currentBrand===brand?' active':'');
+                    li.innerHTML=`<span>${brand}</span><span class="count">${getBrandProductCount(brand)}</span>`;
+                    li.onclick=()=>{
+                        state.currentBrand=brand; state.currentLevel=1; state.currentPage=1;
+                        state.searchTerm=''; searchInput.value=''; initApp();
                     };
                     categoryList.appendChild(li);
                 });
-            } else if (state.currentLevel === 1) {
-                Object.keys(productIndex[state.currentBrand]).forEach(series => {
-                    const li = document.createElement('li');
-                    li.className = 'category-item' + (state.currentCategory === series ? ' active' : '');
-                    li.innerHTML = `<span>${series}</span><span class="count">${Object.keys(productIndex[state.currentBrand][series]).length}</span>`;
-                    li.onclick = () => {
-                        state.currentCategory = series;
-                        state.currentLevel = 2;
-                        state.currentPage = 1;
+            }else if(state.currentLevel===1){
+                Object.keys(productIndex[state.currentBrand]).forEach(series=>{
+                    const li=document.createElement('li');
+                    li.className='category-item'+(state.currentCategory===series?' active':'');
+                    li.innerHTML=`<span>${series}</span><span class="count">${Object.keys(productIndex[state.currentBrand][series]).length}</span>`;
+                    li.onclick=()=>{
+                        state.currentCategory=series; state.currentLevel=2; state.currentPage=1;
                         initApp();
                     };
                     categoryList.appendChild(li);
@@ -263,67 +263,59 @@
             }
         }
 
-        function renderGallery() {
-            if (!state.dataLoaded) return;
-            gallery.innerHTML = '<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
-            setTimeout(() => {
-                let items = [];
-
-                if (state.searchTerm) {
-                    items = performGlobalSearch(state.searchTerm).map(p => ({ type: 'product', ...p }));
-                } else {
-                    if (state.currentLevel === 0) {
-                        items = Object.keys(productIndex).map(brand => ({ type: 'brand', name: brand, count: getBrandProductCount(brand) }));
-                    } else if (state.currentLevel === 1) {
-                        items = Object.keys(productIndex[state.currentBrand]).map(series => ({ type: 'series', name: series, count: Object.keys(productIndex[state.currentBrand][series]).length }));
-                    } else if (state.currentLevel === 2) {
-                        items = Object.values(productIndex[state.currentBrand][state.currentCategory]).map(p => ({ type: 'product', ...p }));
+        function renderGallery(){
+            if(!state.dataLoaded) return;
+            gallery.innerHTML='<div class="loading"><div class="spinner"></div><p>加载中...</p></div>';
+            setTimeout(()=>{
+                let items=[];
+                if(state.searchTerm){
+                    items=performGlobalSearch(state.searchTerm).map(p=>({type:'product', ...p}));
+                }else{
+                    if(state.currentLevel===0){
+                        items=Object.keys(productIndex).map(b=>({type:'brand', name:b, count:getBrandProductCount(b)}));
+                    }else if(state.currentLevel===1){
+                        items=Object.keys(productIndex[state.currentBrand]).map(s=>({type:'series', name:s, count:Object.keys(productIndex[state.currentBrand][s]).length}));
+                    }else if(state.currentLevel===2){
+                        items=Object.values(productIndex[state.currentBrand][state.currentCategory]).map(p=>({type:'product', ...p}));
                     }
                 }
 
-                state.totalItems = items.length;
-                state.totalPages = Math.ceil(state.totalItems / state.itemsPerPage);
-                const start = (state.currentPage - 1) * state.itemsPerPage;
-                const currentItems = items.slice(start, start + state.itemsPerPage);
+                state.totalItems=items.length;
+                state.totalPages=Math.ceil(state.totalItems/state.itemsPerPage);
+                const start=(state.currentPage-1)*state.itemsPerPage;
+                const currentItems=items.slice(start,start+state.itemsPerPage);
 
-                gallery.innerHTML = '';
-                if (currentItems.length === 0) {
-                    gallery.innerHTML = `<div class="no-results"><i class="fas fa-search fa-2x"></i><p>未找到"${state.searchTerm}"相关结果</p></div>`;
+                gallery.innerHTML='';
+                if(currentItems.length===0){
+                    gallery.innerHTML=`<div class="no-results"><i class="fas fa-search fa-2x"></i><p>未找到"${state.searchTerm}"相关结果</p></div>`;
                     return;
                 }
 
-                currentItems.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
+                currentItems.forEach(item=>{
+                    const card=document.createElement('div');
+                    card.className='card';
+                    let imgSrc='';
+                    if(item.type==='brand'){
+                        const sk=Object.keys(productIndex[item.name]||{});
+                        if(sk.length){const fk=sk[0]; const pk=Object.keys(productIndex[item.name][fk]); if(pk.length) imgSrc=productIndex[item.name][fk][pk[0]].url;}
+                    }else if(item.type==='series'){
+                        const pk=Object.keys(productIndex[state.currentBrand][item.name]||{});
+                        if(pk.length) imgSrc=productIndex[state.currentBrand][item.name][pk[0]].url;
+                    }else imgSrc=item.url;
 
-                    let imgSrc = '';
-                    if (item.type === 'brand') {
-                        const seriesKeys = Object.keys(productIndex[item.name]);
-                        if (seriesKeys.length) {
-                            const firstSeries = seriesKeys[0];
-                            const productKeys = Object.keys(productIndex[item.name][firstSeries]);
-                            if (productKeys.length) imgSrc = productIndex[item.name][firstSeries][productKeys[0]].url;
-                        }
-                    } else if (item.type === 'series') {
-                        const productKeys = Object.keys(productIndex[state.currentBrand][item.name]);
-                        if (productKeys.length) imgSrc = productIndex[state.currentBrand][item.name][productKeys[0]].url;
-                    } else {
-                        imgSrc = item.url;
-                    }
-
-                    card.innerHTML = `
+                    card.innerHTML=`
                         <div class="card-img">
-                            <img src="${imgSrc}" alt="${item.name || item.model}" loading="lazy">
+                            <img src="${imgSrc}" alt="${item.name||item.model}" loading="lazy">
                             <div class="card-overlay">
-                                <h3 class="card-title">${item.name || item.model}</h3>
-                                <p class="card-subtitle">${item.type === 'product' ? `${item.brand} - ${item.series}` : ''}</p>
+                                <h3 class="card-title">${item.name||item.model}</h3>
+                                <p class="card-subtitle">${item.type==='product'?`${item.brand} - ${item.series}`:''}</p>
                             </div>
                         </div>
                         <div class="card-content">
                             <div class="card-details">
                                 <div class="detail-item">
-                                    <div class="detail-value">${item.count || item.color}</div>
-                                    <div class="detail-label">${item.type === 'product' ? '颜色' : '数量'}</div>
+                                    <div class="detail-value">${item.count||item.color}</div>
+                                    <div class="detail-label">${item.type==='product'?'颜色':'数量'}</div>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -332,110 +324,108 @@
                         </div>
                     `;
 
-                    if (item.type === 'brand') {
-                        card.onclick = () => {
-                            state.currentBrand = item.name;
-                            state.currentLevel = 1;
-                            state.currentPage = 1;
-                            state.searchTerm = '';
-                            searchInput.value = '';
-                            initApp();
-                        };
-                    } else if (item.type === 'series') {
-                        card.onclick = () => {
-                            state.currentCategory = item.name;
-                            state.currentLevel = 2;
-                            state.currentPage = 1;
-                            initApp();
-                        };
-                    } else {
-                        card.onclick = () => {
-                            lightImg.src = item.url;
-                            scale = 1;
-                            applyScale();
-                            lightbox.style.display = 'flex';
-                        };
+                    if(item.type==='brand'){
+                        card.onclick=()=>{state.currentBrand=item.name; state.currentLevel=1; state.currentPage=1; state.searchTerm=''; searchInput.value=''; initApp();};
+                    }else if(item.type==='series'){
+                        card.onclick=()=>{state.currentCategory=item.name; state.currentLevel=2; state.currentPage=1; initApp();};
+                    }else{
+                        card.onclick=()=>openLightbox(item);
                     }
-
                     gallery.appendChild(card);
                 });
-
                 renderPagination();
-            }, 300);
+            },300);
         }
 
-        function renderPagination() {
-            paginationEl.innerHTML = '';
-            if (state.totalPages <= 1) return;
-            const prev = document.createElement('div');
-            prev.className = 'page-btn' + (state.currentPage === 1 ? ' disabled' : '');
-            prev.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            prev.onclick = () => {
-                if (state.currentPage > 1) {
-                    state.currentPage--;
-                    renderGallery();
-                }
-            };
-            paginationEl.appendChild(prev);
-
-            for (let i = 1; i <= state.totalPages; i++) {
-                const btn = document.createElement('div');
-                btn.className = 'page-btn' + (i === state.currentPage ? ' active' : '');
-                btn.textContent = i;
-                btn.onclick = () => {
-                    state.currentPage = i;
-                    renderGallery();
-                };
+        function renderPagination(){
+            paginationEl.innerHTML='';
+            if(state.totalPages<=1) return;
+            const prevBtn=document.createElement('div');
+            prevBtn.className='page-btn'+(state.currentPage===1?' disabled':'');
+            prevBtn.innerHTML='<i class="fas fa-chevron-left"></i>';
+            prevBtn.onclick=()=>{if(state.currentPage>1){state.currentPage--; renderGallery();}};
+            paginationEl.appendChild(prevBtn);
+            for(let i=1;i<=state.totalPages;i++){
+                const btn=document.createElement('div');
+                btn.className='page-btn'+(i===state.currentPage?' active':'');
+                btn.textContent=i;
+                btn.onclick=()=>{state.currentPage=i; renderGallery();};
                 paginationEl.appendChild(btn);
             }
-
-            const next = document.createElement('div');
-            next.className = 'page-btn' + (state.currentPage === state.totalPages ? ' disabled' : '');
-            next.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            next.onclick = () => {
-                if (state.currentPage < state.totalPages) {
-                    state.currentPage++;
-                    renderGallery();
-                }
-            };
-            paginationEl.appendChild(next);
+            const nextBtn=document.createElement('div');
+            nextBtn.className='page-btn'+(state.currentPage===state.totalPages?' disabled':'');
+            nextBtn.innerHTML='<i class="fas fa-chevron-right"></i>';
+            nextBtn.onclick=()=>{if(state.currentPage<state.totalPages){state.currentPage++; renderGallery();}};
+            paginationEl.appendChild(nextBtn);
         }
 
-        function initApp() {
-            renderBreadcrumb();
-            renderCategories();
-            renderGallery();
+        /* ========= 连续浏览 ========= */
+        function buildBrandProducts(brand){
+            // 把该品牌下所有型号取出，按 model 升序
+            const arr=[];
+            Object.values(productIndex[brand]||{}).forEach(seriesObj=>{
+                Object.values(seriesObj).forEach(p=>arr.push(p));
+            });
+            arr.sort((a,b)=>a.model.localeCompare(b.model,undefined,{numeric:true}));
+            return arr;
         }
 
-        function applyScale() {
-            lightImg.style.transform = `scale(${scale})`;
+        function openLightbox(product){
+            // 生成当前品牌连续数组
+            currentBrandProducts = buildBrandProducts(product.brand);
+            currentProdIdx = currentBrandProducts.findIndex(p=>p.url===product.url);
+
+            showLightboxImage();
+            lightbox.style.display='flex';
         }
 
-        zoomInBtn.addEventListener('click', () => {
-            scale += 0.4;
-            applyScale();
+        function showLightboxImage(){
+            const p = currentBrandProducts[currentProdIdx];
+            lightImg.src = p.url;
+            scale = 1;
+            lightImg.style.transform='scale(1)';
+        }
+
+        function prevImage(){
+            if(currentBrandProducts.length===0) return;
+            currentProdIdx = (currentProdIdx - 1 + currentBrandProducts.length) % currentBrandProducts.length;
+            showLightboxImage();
+        }
+
+        function nextImage(){
+            if(currentBrandProducts.length===0) return;
+            currentProdIdx = (currentProdIdx + 1) % currentBrandProducts.length;
+            showLightboxImage();
+        }
+
+        /* ========= 事件绑定 ========= */
+        prevBtn.addEventListener('click', prevImage);
+        nextBtn.addEventListener('click', nextImage);
+        closeBox.addEventListener('click', ()=>lightbox.style.display='none');
+        document.addEventListener('keydown', e=>{
+            if(lightbox.style.display!=='flex') return;
+            if(e.key==='ArrowLeft') prevImage();
+            if(e.key==='ArrowRight') nextImage();
+            if(e.key==='Escape') lightbox.style.display='none';
         });
 
-        zoomOutBtn.addEventListener('click', () => {
-            scale = Math.max(0.4, scale - 0.3);
-            applyScale();
-        });
+        zoomInBtn.addEventListener('click',()=>{scale+=0.4; lightImg.style.transform=`scale(${scale})`;});
+        zoomOutBtn.addEventListener('click',()=>{scale=Math.max(0.4,scale-0.3); lightImg.style.transform=`scale(${scale})`;});
 
-        function saveDataToLocalStorage(data) {
+        /* ========= 文件/缓存 ========= */
+        function saveDataToLocalStorage(data){
             localStorage.setItem('productData', data);
             localStorage.setItem('productIndex', JSON.stringify(productIndex));
             localStorage.setItem('allProducts', JSON.stringify(allProducts));
         }
-
-        function loadDataFromLocalStorage() {
-            const data = localStorage.getItem('productData');
-            const index = localStorage.getItem('productIndex');
-            const products = localStorage.getItem('allProducts');
-            
-            if (data && index && products) {
-                productIndex = JSON.parse(index);
-                allProducts = JSON.parse(products);
-                state.dataLoaded = true;
+        function loadDataFromLocalStorage(){
+            const data=localStorage.getItem('productData');
+            const idx=localStorage.getItem('productIndex');
+            const prods=localStorage.getItem('allProducts');
+            if(data && idx && prods){
+                productIndex=JSON.parse(idx);
+                allProducts=JSON.parse(prods);
+                state.dataLoaded=true;
                 initApp();
                 showNotification('已加载本地缓存数据');
                 return true;
@@ -443,57 +433,43 @@
             return false;
         }
 
-        fileInput.addEventListener('change', e => {
-            const file = e.target.files[0];
-            if (!file) return;
-            fileName.textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = () => {
-                const items = parseCSV(reader.result);
-                if (items.length === 0) {
-                    showNotification('数据格式错误或为空', true);
-                    return;
-                }
-                productIndex = buildProductIndex(items);
+        fileInput.addEventListener('change', e=>{
+            const file=e.target.files[0]; if(!file) return;
+            fileName.textContent=file.name;
+            const reader=new FileReader();
+            reader.onload=()=>{
+                const items=parseCSV(reader.result);
+                if(items.length===0){showNotification('数据格式错误或为空',true); return;}
+                productIndex=buildProductIndex(items);
                 saveDataToLocalStorage(reader.result);
-                state.dataLoaded = true;
-                state.currentLevel = 0;
-                state.currentBrand = null;
-                state.currentCategory = null;
-                state.currentPage = 1;
+                state.dataLoaded=true;
+                state.currentLevel=0; state.currentBrand=null; state.currentCategory=null; state.currentPage=1;
                 initApp();
                 showNotification(`成功加载 ${items.length} 条产品数据`);
             };
             reader.readAsText(file);
         });
 
-        searchInput.addEventListener('input', () => {
-            state.searchTerm = searchInput.value.trim();
-            state.currentPage = 1;
+        searchInput.addEventListener('input',()=>{
+            state.searchTerm=searchInput.value.trim();
+            state.currentPage=1;
             renderGallery();
         });
 
-        closeBox.addEventListener('click', () => lightbox.style.display = 'none');
-
-        breadcrumb.addEventListener('click', e => {
-            const item = e.target.closest('.breadcrumb-item');
-            if (!item) return;
-            const level = parseInt(item.dataset.level ?? 0);
-            if (level === 0) {
-                state.currentLevel = 0;
-                state.currentBrand = null;
-                state.currentCategory = null;
-                state.currentPage = 1;
-                initApp();
-            } else if (level === 1) {
-                state.currentLevel = 1;
-                state.currentCategory = null;
-                state.currentPage = 1;
-                initApp();
-            }
+        breadcrumb.addEventListener('click',e=>{
+            const item=e.target.closest('.breadcrumb-item'); if(!item) return;
+            const level=parseInt(item.dataset.level||0);
+            if(level===0){state.currentLevel=0; state.currentBrand=null; state.currentCategory=null; state.currentPage=1; initApp();}
+            else if(level===1){state.currentLevel=1; state.currentCategory=null; state.currentPage=1; initApp();}
         });
 
-        window.addEventListener('load', () => {
+        function initApp(){
+            renderBreadcrumb();
+            renderCategories();
+            renderGallery();
+        }
+
+        window.addEventListener('load',()=>{
             loadDataFromLocalStorage();
             initApp();
         });
